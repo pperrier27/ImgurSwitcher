@@ -17,7 +17,12 @@
 # File contains methods to deal with Imgur/callbacks to use when the user chooses to move things around.
 # TODO: Make a proper docstring/improve the wording of this comment.
 
-import imgurpython
+from imgurpython import ImgurClient
+
+# OAuth2 tokens
+OAUTH2_CLIENT_ID = "XXX"
+OAUTH2_CLIENT_SECRET = "YYY"
+
 
 def next_image_callback():
     """ TODO: Improve this docstring
