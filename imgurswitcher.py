@@ -29,6 +29,11 @@ import imgur_callbacks as callbacks
 MAX_QUEUE_SIZE = 200
 QUEUE_OP_TIMEOUT = 10  # seconds
 
+# Queue priorities
+LOW_PRIORITY = 10
+MED_PRIORITY = 5
+HIGH_PRIORITY = 1
+
 # Ideally shouldn't be global, but will do for now. TODO: refactor?
 # Queues up the callbacks that should be executed as the user pushes keys.
 eventQueue = queue.PriorityQueue(MAX_QUEUE_SIZE) 
@@ -37,6 +42,8 @@ eventQueue = queue.PriorityQueue(MAX_QUEUE_SIZE)
 
 
 def on_keyboard_event(event):
+    """ TODO: Make a better docstring
+    """
     # For ease of testing, remove later
     if event.GetKey() == "Q":
     	quit()
@@ -44,7 +51,12 @@ def on_keyboard_event(event):
     if(event.IsAlt()):
         keyPressed = event.GetKey()
         if(keyPressed == "D"):
-            eventQueue.put(, False, QUEUE_OP_TIMEOUT)
+            eventQueue.put((LOW_PRIORITY, callbacks.next_image_callback), False, QUEUE_OP_TIMEOUT)
+        elif(keyPressed == "A"):
+            eventQueue.put(LOW_PRIORITY, callbacks.prev_image_callback, False, QUEUE_OP_TIMEOUT)
+        elif(keyPressed == "S"):
+            eventQueue.put((HIGH_PRIORITY, callbacks.save_image_callback), False, QUEUE_OP_TIMEOUT)
+
 
         return False
 
