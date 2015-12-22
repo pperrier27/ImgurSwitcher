@@ -17,6 +17,8 @@
 # File contains methods to deal with Imgur/callbacks to use when the user chooses to move things around.
 # TODO: Make a proper docstring/improve the wording of this comment.
 
+from os import _exit # lets us kill the whole program from a thread, which is needed because the quit functionality 
+                     # is called in a thread!
 from imgurpython import ImgurClient
 import config as cfg
 
@@ -57,4 +59,4 @@ class ImgurCallbacks:
     @staticmethod
     def quit():
         """ Callback to use to cause this program to end."""
-        print("Quit callback!")
+        _exit(0)

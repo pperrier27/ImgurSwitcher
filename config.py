@@ -35,3 +35,5 @@ eventQueue = queue.PriorityQueue(MAX_QUEUE_SIZE)
 # OAuth2 tokens
 OAUTH2_CLIENT_ID = "XXX"
 OAUTH2_CLIENT_SECRET = "YYY"
+
+IMGUR_ALBUM_URL = ""

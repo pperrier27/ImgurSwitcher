@@ -20,7 +20,6 @@ if __name__ != "__main__":
     quit()
 
 from threading import Thread
-from sys import exit
 import pyHook as Hook
 import pythoncom as Com
 import config as cfg
@@ -34,7 +33,6 @@ class Worker(Thread):
     """
 
     def run(self):
-        print("in worker loop")
         while True:
             fcn = eventQueue.get()
             fcn[1]()  # the event queue contains tuples; the callback is the second item
@@ -43,9 +41,6 @@ class Worker(Thread):
 def on_keyboard_event(event):
     """ TODO: Make a better docstring, including what different key combos should do
     """
-    # For ease of testing, remove later
-    if event.GetKey() == "Q":
-    	exit()
 
     if(event.IsAlt()):
         keyPressed = event.GetKey()
@@ -58,7 +53,7 @@ def on_keyboard_event(event):
         elif(keyPressed == "U"):
             eventQueue.put((cfg.HIGH_PRIORITY, ImgurCallbacks.change_url), False, cfg.QUEUE_OP_TIMEOUT)
         elif(keyPressed == "Q"):
-            eventQueue.put((cfg.URGENT_PRIORITY, ImgurCallbacks.quit), False, cfg.QUEUE_OP_TIMEOUT)
+            eventQueue.put((cfg.HIGH_PRIORITY, ImgurCallbacks.quit), False, cfg.QUEUE_OP_TIMEOUT)
 
         return False
 
