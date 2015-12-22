@@ -18,31 +18,43 @@
 # TODO: Make a proper docstring/improve the wording of this comment.
 
 from imgurpython import ImgurClient
+import config as cfg
 
-# OAuth2 tokens
-OAUTH2_CLIENT_ID = "XXX"
-OAUTH2_CLIENT_SECRET = "YYY"
+class ImgurCallbacks:
+    """ Encapsulate callbacks as static methods of this class. """
+    
+    @staticmethod
+    def next_image():
+        """ TODO: Improve this docstring
+            Callback to use to fetch the next image.
+        """
+        print("Next image callback!")
 
+    @staticmethod
+    def prev_image():
+        """ TODO: Improve this docstring
+            Callback to use to fetch the previous image.
+        """
+        print("Prev image callback!")
 
-def next_image_callback():
-    """ TODO: Improve this docstring
-        Callback to use to fetch the next image.
-    """
-    pass
+    @staticmethod
+    def save_image():
+        """ TODO: Improve this docstring
+            Callback to use to save the current image to file.
 
-def prev_image_callback():
-    """ TODO: Improve this docstring
-        Callback to use to fetch the previous image.
-    """
-    pass
+            More accurately, this will simply move the file from the
+            %TEMP% directory to somewhere the user chooses, since the
+            image was already written to disk to be able to use it as
+            a background.
+        """
+        print("Save image callback!")
 
-def save_image_callback():
-    """ TODO: Improve this docstring
-        Callback to use to save the current image to file.
+    @staticmethod
+    def change_url():
+        """ Callback to use to change the URL of the Imgur album to pull images from."""
+        pass
 
-        More accurately, this will simply move the file from the
-        %TEMP% directory to somewhere the user chooses, since the
-        image was already written to disk to be able to use it as
-        a background.
-    """
-    pass
+    @staticmethod
+    def quit():
+        """ Callback to use to cause this program to end."""
+        print("Quit callback!")

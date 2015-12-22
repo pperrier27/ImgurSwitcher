@@ -19,51 +19,55 @@ if __name__ != "__main__":
     print("Importing this module (imgurswitcher) is not allowed.")
     quit()
 
+from threading import Thread
+from sys import exit
 import pyHook as Hook
 import pythoncom as Com
-import threading
-import queue
-import imgur_callbacks as callbacks
+import config as cfg
+from imgur_callbacks import ImgurCallbacks
 
-# Arbitrary (constant) limit to the size of the event queue/timeout for events.
-MAX_QUEUE_SIZE = 200
-QUEUE_OP_TIMEOUT = 10  # seconds
+eventQueue = cfg.eventQueue
 
-# Queue priorities
-LOW_PRIORITY = 10
-MED_PRIORITY = 5
-HIGH_PRIORITY = 1
+class Worker(Thread):
+    """ Class that does the invoking of the queued callbacks
+        to avoid blocking the main thread
+    """
 
-# Ideally shouldn't be global, but will do for now. TODO: refactor?
-# Queues up the callbacks that should be executed as the user pushes keys.
-eventQueue = queue.PriorityQueue(MAX_QUEUE_SIZE) 
-
-
-
+    def run(self):
+        print("in worker loop")
+        while True:
+            fcn = eventQueue.get()
+            fcn[1]()  # the event queue contains tuples; the callback is the second item
+            eventQueue.task_done()
 
 def on_keyboard_event(event):
-    """ TODO: Make a better docstring
+    """ TODO: Make a better docstring, including what different key combos should do
     """
     # For ease of testing, remove later
     if event.GetKey() == "Q":
-    	quit()
+    	exit()
 
     if(event.IsAlt()):
         keyPressed = event.GetKey()
         if(keyPressed == "D"):
-            eventQueue.put((LOW_PRIORITY, callbacks.next_image_callback), False, QUEUE_OP_TIMEOUT)
+            eventQueue.put((cfg.LOW_PRIORITY, ImgurCallbacks.next_image), False, cfg.QUEUE_OP_TIMEOUT)
         elif(keyPressed == "A"):
-            eventQueue.put(LOW_PRIORITY, callbacks.prev_image_callback, False, QUEUE_OP_TIMEOUT)
+            eventQueue.put((cfg.LOW_PRIORITY, ImgurCallbacks.prev_image), False, cfg.QUEUE_OP_TIMEOUT)
         elif(keyPressed == "S"):
-            eventQueue.put((HIGH_PRIORITY, callbacks.save_image_callback), False, QUEUE_OP_TIMEOUT)
-
+            eventQueue.put((cfg.HIGH_PRIORITY, ImgurCallbacks.save_image), False, cfg.QUEUE_OP_TIMEOUT)
+        elif(keyPressed == "U"):
+            eventQueue.put((cfg.HIGH_PRIORITY, ImgurCallbacks.change_url), False, cfg.QUEUE_OP_TIMEOUT)
+        elif(keyPressed == "Q"):
+            eventQueue.put((cfg.URGENT_PRIORITY, ImgurCallbacks.quit), False, cfg.QUEUE_OP_TIMEOUT)
 
         return False
 
     return True
 
 
-
+workThread = Worker()
+workThread.daemon = True # allow exit to work properly and terminate everything
+workThread.start()
 hookManager = Hook.HookManager()
 hookManager.KeyDown = on_keyboard_event
 hookManager.HookKeyboard()
