@@ -20,14 +20,11 @@ It is required to call cfg.parse_cfg_file immediately after the
 imports, because this module depends on having some config values set.
 """
 
-from os import _exit # lets us kill the whole program from a thread, which is needed because the quit functionality 
-                     # is called in a thread!
 import urllib.request, urllib.parse, urllib.error
 import re
 import pythoncom as com
 import config as cfg
-
-cfg.parse_cfg_file() # Need to call this because ImgurImages depends on it
+import set_bg_windows  # TODO: detect the platform and import the correct module based on it
 
 def _initialize_images():
     """Initializes ImgurCallbacks' image ID list from the URL given in the config module.
@@ -69,13 +66,13 @@ class ImgurCallbacks:
     """Holds the callbacks and information they require."""
 
     _image_ids = _initialize_images()
-    _image_index = 0 # keep track of which image we're on
-    
+
     @staticmethod
     def next_image():
         """Callback to use to fetch the next image in the album and set it as the background."""
         _image_index += 1
-        
+        image = None
+        set_as_background(image)
         
     @staticmethod
     def prev_image():
@@ -102,9 +99,4 @@ class ImgurCallbacks:
     @staticmethod
     def change_url():
         """Callback to use to change the URL of the Imgur album to pull images from."""
-        pass
-
-    @staticmethod
-    def quit():
-        """Callback to use to cause this program to end."""
-        _exit(0)
+        print("Change url callback!")

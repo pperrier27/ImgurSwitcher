@@ -24,11 +24,24 @@ if __name__ != "__main__":
     print("Importing this module (imgurswitcher) is not allowed.")
     quit()
 
+# Import the common libraries
 from threading import Thread
-import pyHook as hook
-import pythoncom as com
 import config as cfg
-import imgur_callbacks as callbacks # This conveniently calls cfg.parse_config_file() so we don't need to do it again here. TODO: refactor this to be not terrible.
+import imgur_callbacks as callbacks
+
+_platform = cfg.platform
+
+# Windows-specific imports
+if _platform == "Windows":
+    import pyHook as hook
+    import pythoncom as com
+    from os import _exit # fugly but it works to exit
+
+elif _platform == "Darwin":
+    pass
+
+elif _platform == "Linux":
+    pass
 
 class Worker(Thread):
     """Class that does the invoking of the queued callbacks to avoid blocking the main thread."""
@@ -36,8 +49,14 @@ class Worker(Thread):
     def run(self):
         while True:
             fcn = event_queue.get()
-            fcn[1]()  # the event queue contains tuples; the callback is the second item
-            event_queue.task_done()
+            if fcn[1]:
+                fcn[1]()  # the event queue contains tuples; the callback is the second item
+                event_queue.task_done()
+            else:
+                # This means that the user wants to quit the program, since only quit should pass a None callback
+                break
+                
+        exit_program()
 
 def on_keyboard_event(event):
     """ Callback that is called whenever a key on the keyboard is hit.
@@ -50,6 +69,8 @@ def on_keyboard_event(event):
     ALT+S: Save the current image to the user's computer (i.e. copy it so it's not deleted when the image changes)
     ALT+U: Change the Imgur album that pictures are pulled from (by changing the URL in the config file).
     ALT+Q: Quit this program.
+
+    Note that a None value is currently reserved as the "quit callback".
     """
 
     if(event.IsAlt()):
@@ -65,18 +86,58 @@ def on_keyboard_event(event):
         elif(keyPressed == "U"):
             event_queue.put((cfg.HIGH_PRIORITY, callbacks.ImgurCallbacks.change_url), False, cfg.queue_op_timeout)
         elif(keyPressed == "Q"):
-            event_queue.put((cfg.HIGH_PRIORITY, callbacks.ImgurCallbacks.quit), False, cfg.queue_op_timeout)
+            event_queue.put((cfg.HIGH_PRIORITY, None), False, cfg.queue_op_timeout) # None is reserved for quitting
 
         return False
 
     return True
 
+def exit_program():
+    """Does cleanup and exits the program in a platform-appropriate way."""
+    
+    # Common, every platform needs to call this
+    cfg.on_quit()
 
+    if _platform == "Windows":
+        _exit(0) # TODO: refactor this to exit "properly", though this works since we have no cleanup left to do
+                 # This would probably involve using ctypes and the win32api to get a WM_QUIT to the main thread,
+                 # which is what PumpMessages quits on.
+
+    elif _platform == "Darwin":
+        pass
+    
+    elif _platform == "Linux":
+        pass
+    
+    else:
+        # Should NEVER get here: if platform was not determined we should have shut down
+        # looooong before this.
+        print("How did you even get here?")
+        _exit(42)
+
+# Common parts
 event_queue = cfg.event_queue
 workThread = Worker()
-workThread.daemon = True # allow exit to work properly and terminate everything
+workThread.daemon = True
 workThread.start()
-hookManager = hook.HookManager()
-hookManager.KeyDown = on_keyboard_event
-hookManager.HookKeyboard()
-com.PumpMessages()
+
+# Windows-specific
+if _platform == "Windows": 
+    hookManager = hook.HookManager()
+    hookManager.KeyDown = on_keyboard_event
+    hookManager.HookKeyboard()
+    com.PumpMessages()
+
+# OSX-specific
+elif _platform == "Darwin":
+    pass
+
+# Linux-specific
+elif _platform == "Linux":
+    pass
+
+# Default to catch obscure error cases
+else:
+    # Should NEVER get here: if platform was not determined we should have shut down
+    # looooong before this.
+    print("How did you even get here?")

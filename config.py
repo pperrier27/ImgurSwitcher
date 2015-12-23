@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Module contains config information for imgurswitcher/global variables it uses.
+"""Module contains config/platform information for imgurswitcher/global variables it uses.
 
 The configuration values for the maximum buffer queue size, the queue operation timeout,
 and the URL to the Imgur album to pull images from are all read from the file named in
@@ -23,6 +23,8 @@ found or an error occurs, the default values (hardcoded into this module) are us
 
 import queue
 import re
+import platform as _platform
+
 
 # Name of the config file. Expected to be in the same directory as this script
 CONFIG_FILE_NAME = "config.cfg"
@@ -31,18 +33,24 @@ CONFIG_FILE_NAME = "config.cfg"
 max_queue_size = 200
 queue_op_timeout = 10  # seconds
 
+# Ideally shouldn't be global, but will do for now. TODO: refactor?
+# Queues up the callbacks that should be executed as the user pushes keys.
+# Set in parse_cfg_file, so that MUST be called before using this variable.
+event_queue = None
+imgur_album_url = "http://imgur.com/gallery/wCBYO" # default album
+album_pos = 1 # default position in album (1-indexed)
+
 # Queue priorities
 LOW_PRIORITY = 10
 MED_PRIORITY = 5
 HIGH_PRIORITY = 1
 URGENT_PRIORITY = 0 
 
-# Ideally shouldn't be global, but will do for now. TODO: refactor?
-# Queues up the callbacks that should be executed as the user pushes keys.
-# Set in parse_cfg_file, so that MUST be called before using this variable.
-event_queue = None
+# Determine the platform we're running on
+platform = _platform.system()
+if not platform:
+    raise ImgurSwitcherException("Can't figure out what platform this is running on, somehow. Cannot run program.")
 
-imgur_album_url = "http://imgur.com/gallery/wCBYO" # default album
 
 # Is in this file because this is the "global" file, so every other file can access this.
 class ImgurSwitcherException(Exception):
@@ -78,25 +86,22 @@ def parse_cfg_file():
     """
     with open(CONFIG_FILE_NAME, 'r') as cfg_file:
         lines = cfg_file.read()
-        size_match = re.match("size:(?: )*(.*)", lines)
-        timeout_match = re.match("timeout:(?: )*(.*)", lines)
+        size_match = re.match("size:(?: )*([0-9]+)", lines)
+        timeout_match = re.match("timeout:(?: )*([0-9]+)", lines)
         url_match = re.match("url:(?: )*(.*)", lines)
+        album_pos_match = re.match("position:(?: )*([0-9]+)", lines)
 
         # Set the values; if anything fails then defaults will be used.
         if size_match:
-            try:
-                max_queue_size = int(size_match.group(1)) 
-            except:
-                pass
-
+            max_queue_size = int(size_match.group(1)) 
             global event_queue 
             event_queue = queue.PriorityQueue(max_queue_size) 
         
         if timeout_match:
-            try:
-                queue_op_timeout = int(timeout_match.group(1))
-            except:
-                pass
+            queue_op_timeout = int(timeout_match.group(1))
+
+        if album_pos_match:
+            album_pos = int(size_match.group(1)) 
 
         if url_match:
             if verify_url(url_match.group(1)):
@@ -106,3 +111,25 @@ def parse_cfg_file():
                 # If this is hit, then someone messed with the default value of imgur_album_url and broke it. Go fix it.
                 raise ImgurSwitcherException("You changed the default value of imgur_album_url in config.py and broke the program,"
                     " because it is no longer a valid Imgur URL. Go fix it!")
+
+def on_quit():
+    """Function to call just before quitting. Writes album_pos to the config file for the next run."""
+
+    with open(CONFIG_FILE_NAME, "r+") as cfg_file:
+        lines = cfg_file.read()
+        
+        # delete the first previous occurrence of the position line, then clear the text from the
+        # file and write in the new text
+        result = re.subn("position:(?: )*(.*)", "position: " + str(album_pos), lines, 1) # at most one replacement
+        if result[1] == 1:
+            lines = result[0]
+            print("WULLEH")
+        else:
+            lines += "\nposition: " + str(album_pos)
+
+        # Clear text from the file and reset the stream pointer to the beginning of the file
+        cfg_file.seek(0)
+        cfg_file.truncate()
+        cfg_file.write(lines)
+
+parse_cfg_file() # set up the config values on first import

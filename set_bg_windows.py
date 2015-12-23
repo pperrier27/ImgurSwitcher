@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-""" Module contains the Windows-specific functionality to set an
+""" Module contains the platform-specific functionality to set an
     image as a background picture. 
 """
+
+import config
