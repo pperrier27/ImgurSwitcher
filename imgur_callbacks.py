@@ -19,19 +19,37 @@
 
 from os import _exit # lets us kill the whole program from a thread, which is needed because the quit functionality 
                      # is called in a thread!
-from imgurpython import ImgurClient
+import urllib.request, urllib.parse, urllib.error
+import pythoncom as com
 import config as cfg
 
-class ImgurCallbacks:
-    """ Encapsulate callbacks as static methods of this class. """
+class ImgurSwitcherException(Exception):
+    """ Simple general exception class to use if something goes wrong with this program. """
+    def __init__(self, msg=None):
+        self.message = msg
+
+
+def _initialize_images():
+    """ Initializes the image ID list from the given URL in the config module """
     
+    # This should always be true unless someone went and manually edited the value, rather than using the program
+    # to change it.
+    if cfg.verify_url(cfg.imgur_album_url):
+        # Do stuff
+        pass
+    else:
+        # TODO: make this an error dialog box
+        print("URL is not valid!")
+
+class ImgurImages:
+    
+    _imageIds = _initialize_images()
     @staticmethod
     def next_image():
         """ TODO: Improve this docstring
             Callback to use to fetch the next image.
         """
-        print("Next image callback!")
-
+        
     @staticmethod
     def prev_image():
         """ TODO: Improve this docstring

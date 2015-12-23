@@ -20,12 +20,10 @@ if __name__ != "__main__":
     quit()
 
 from threading import Thread
-import pyHook as Hook
-import pythoncom as Com
+import pyHook as hook
+import pythoncom as com
 import config as cfg
-from imgur_callbacks import ImgurCallbacks
-
-eventQueue = cfg.eventQueue
+import imgur_callbacks as callbacks
 
 class Worker(Thread):
     """ Class that does the invoking of the queued callbacks
@@ -45,25 +43,27 @@ def on_keyboard_event(event):
     if(event.IsAlt()):
         keyPressed = event.GetKey()
         if(keyPressed == "D"):
-            eventQueue.put((cfg.LOW_PRIORITY, ImgurCallbacks.next_image), False, cfg.QUEUE_OP_TIMEOUT)
+            eventQueue.put((cfg.LOW_PRIORITY, callbacks.ImgurImages.next_image), False, cfg.queue_op_timeout)
         elif(keyPressed == "A"):
-            eventQueue.put((cfg.LOW_PRIORITY, ImgurCallbacks.prev_image), False, cfg.QUEUE_OP_TIMEOUT)
+            eventQueue.put((cfg.LOW_PRIORITY, callbacks.ImgurImages.prev_image), False, cfg.queue_op_timeout)
         elif(keyPressed == "S"):
-            eventQueue.put((cfg.HIGH_PRIORITY, ImgurCallbacks.save_image), False, cfg.QUEUE_OP_TIMEOUT)
+            eventQueue.put((cfg.HIGH_PRIORITY, callbacks.ImgurImages.save_image), False, cfg.queue_op_timeout)
         elif(keyPressed == "U"):
-            eventQueue.put((cfg.HIGH_PRIORITY, ImgurCallbacks.change_url), False, cfg.QUEUE_OP_TIMEOUT)
+            eventQueue.put((cfg.HIGH_PRIORITY, callbacks.ImgurImages.change_url), False, cfg.queue_op_timeout)
         elif(keyPressed == "Q"):
-            eventQueue.put((cfg.HIGH_PRIORITY, ImgurCallbacks.quit), False, cfg.QUEUE_OP_TIMEOUT)
+            eventQueue.put((cfg.HIGH_PRIORITY, callbacks.ImgurImages.quit), False, cfg.queue_op_timeout)
 
         return False
 
     return True
 
 
+cfg.parse_cfg_file()
+eventQueue = cfg.eventQueue
 workThread = Worker()
 workThread.daemon = True # allow exit to work properly and terminate everything
 workThread.start()
-hookManager = Hook.HookManager()
+hookManager = hook.HookManager()
 hookManager.KeyDown = on_keyboard_event
 hookManager.HookKeyboard()
-Com.PumpMessages()
+com.PumpMessages()
