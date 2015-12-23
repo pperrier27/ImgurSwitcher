@@ -26,7 +26,7 @@ if __name__ != "__main__":
 
 # Import the common libraries
 from threading import Thread
-import config as cfg
+import config as cfg 
 import imgur_callbacks as callbacks
 
 _platform = cfg.platform

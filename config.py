@@ -13,18 +13,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Module contains config/platform information for imgurswitcher/global variables it uses.
+"""Module contains config/platform information for imgurswitcher/global variables it uses/
+assorted config-related functionality.
 
 The configuration values for the maximum buffer queue size, the queue operation timeout,
 and the URL to the Imgur album to pull images from are all read from the file named in
 CONFIG_FILE_NAME, which should be in the same directory as this module. If the file is not
 found or an error occurs, the default values (hardcoded into this module) are used.
+
 """
 
 import queue
 import re
 import platform as _platform
-
 
 # Name of the config file. Expected to be in the same directory as this script
 CONFIG_FILE_NAME = "config.cfg"
@@ -46,8 +47,6 @@ MED_PRIORITY = 5
 HIGH_PRIORITY = 1
 URGENT_PRIORITY = 0 
 
-# The platforms that are currently supported.
-_supported_platforms = ["Windows"]
 
 # Is in this module because this is the "global" file, so every other file can access this.
 # If this project ever gets more varied custom exceptions, move to a separate exceptions.py module.
@@ -56,14 +55,22 @@ class ImgurSwitcherException(Exception):
     def __init__(self, msg=None):
         self.message = msg
 
-# Determine the platform we're running on
-platform = _platform.system()
-if not platform:
-    raise ImgurSwitcherException("Can't figure out what platform this is running on, somehow. Cannot run program.")
+# The platforms that are currently supported.
+_supported_platforms = ["Windows"]
 
-elif platform not in _supported_platforms:
-    raise ImgurSwitcherException("Sorry, ImgurSwitcher currently does not support your platform (" + platform + "). Feel free to implement support for it!")
+def _get_platform():
+    """Determine the platform we're running on.
 
+    Sets the platform global to the platform string if the platform can be
+    found and is supported, otherwise throws an ImgurSwitcherException.
+    Not intended to be called from outside this module."""
+    global platform
+    platform = _platform.system()
+    if not platform:
+        raise ImgurSwitcherException("Can't figure out what platform this is running on, somehow. Cannot run program.")
+
+    elif platform not in _supported_platforms:
+        raise ImgurSwitcherException("Sorry, ImgurSwitcher currently does not support your platform (" + platform + "). Feel free to implement support for it!")
 
 def verify_url(url):
     """Determines if url is valid; sets album_id and returns True if it is, returns False if it isn't.
@@ -142,4 +149,11 @@ def on_quit():
         cfg_file.truncate()
         cfg_file.write(lines)
 
-parse_cfg_file() # set up the config values on first import
+
+def init():
+    """Function that initializes the config settings."""
+
+    _get_platform() # don't try/except this because we WANT to fail if this throws
+    parse_cfg_file()
+
+init() # do initialization on first import

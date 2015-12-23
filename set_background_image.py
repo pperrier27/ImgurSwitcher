@@ -22,7 +22,9 @@ import config as cfg
 if cfg.platform == "Windows":
     def set_as_background(url):
         print("Setting background Windows!")
-        return True
+        import ctypes
+        SPI_SETDESKWALLPAPER = 20 
+        return ctypes.windll.user32.SystemParametersInfoW(SPI_SETDESKWALLPAPER, 0, url, 3)
 
 elif cfg.platform == "Darwin":
     def set_as_background(url):

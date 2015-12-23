@@ -63,42 +63,48 @@ def _initialize_images():
         # TODO: change this into a dialog box
         raise cfg.ImgurSwitcherException("The provided URL is not a valid Imgur URL!")
 
-
 class ImgurCallbacks:
     """Holds the callbacks and information they require."""
 
     _image_ids = _initialize_images()
     _imgur_stub = r"http://i.imgur.com/"
-    _current_image_path = ""
-    _current_image_id = "" # Use as a caching helper
+    # Windows needs absolute paths or it fails
+    _img_path = os.path.abspath("images/background.jpg")
+    _DEFAULT_IMAGE = os.path.abspath("images/default.jpg")
 
     @staticmethod
     def next_image():
         """Callback to use to fetch the next image in the album and set it as the background."""
         # cfg.album_pos is 1-indexed
         index = (cfg.album_pos - 1) % len(ImgurCallbacks._image_ids)
-        
-        # Save values that are about to be overriden that we need later
-        old_image_path = ImgurCallbacks._current_image_path
-        
-        # Need arbitrary image format extension to get to the page with just the image. Will fix to the actual format later.
+                
+        # Need arbitrary image type extension to get to the page with just a picture.
+        # We'll assume that the file is a jpg, because it probably is according to 
+        # my interpretation of https://help.imgur.com/hc/en-us/articles/201424906-What-file-types-are-allowed
+        # Alternatively, future development could read the magic bytes of the image and figure out
+        # what image type it was.
         image_url = ImgurCallbacks._imgur_stub + ImgurCallbacks._image_ids[index] + ".jpg" 
         
         try:
-            ImgurCallbacks._current_image_path, junk = urllib.request.urlretrieve(image_url)
-        
+            # We don't need to store these values, we know where the images will be saved
+            junk1, junk2 = urllib.request.urlretrieve(image_url, ImgurCallbacks._img_path) # clobbers the old image
+            
         except Exception as e:
             # For now just leave it alone... TODO: dialog box that warns the user that this operation couldn't complete.            
             print("Download failed!")
             return
-
-        if set_as_background(ImgurCallbacks._current_image_path):
+        
+        if set_as_background(ImgurCallbacks._img_path):
             print("Success at setting bg!")
-            # Delete old image file
-            album_pos += 1
+            cfg.album_pos += 1
         else:
-            print("Bg set fail!")
-            # Delete current image file
+            print("Bg set fail! Try default")
+            # Delete current image file and try the default
+            os.remove(ImgurCallbacks._img_path)
+            if set_as_background(ImgurCallbacks._DEFAULT_IMAGE):
+                print("default image set")
+            else:
+                print("something went terribly wrong")
         
     @staticmethod
     def prev_image():
