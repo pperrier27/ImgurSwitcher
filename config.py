@@ -123,7 +123,7 @@ def on_quit():
         result = re.subn("position:(?: )*(.*)", "position: " + str(album_pos), lines, 1) # at most one replacement
         if result[1] == 1:
             lines = result[0]
-            print("WULLEH")
+            
         else:
             lines += "\nposition: " + str(album_pos)
 
