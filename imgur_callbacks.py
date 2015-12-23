@@ -14,8 +14,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-# File contains methods to deal with Imgur/callbacks to use when the user chooses to move things around.
-# TODO: Make a proper docstring/improve the wording of this comment.
+"""Module contains methods used for callbacks.
+
+It is required to call cfg.parse_cfg_file immediately after the
+imports, because this module depends on having some config values set.
+"""
 
 from os import _exit # lets us kill the whole program from a thread, which is needed because the quit functionality 
                      # is called in a thread!
@@ -27,7 +30,12 @@ import config as cfg
 cfg.parse_cfg_file() # Need to call this because ImgurImages depends on it
 
 def _initialize_images():
-    """ Initializes the image ID list from the given URL in the config module """
+    """Initializes ImgurCallbacks' image ID list from the URL given in the config module.
+
+    Should not be called from outside ImgurCallbacks.
+    This function will also cause the program to terminate if the config URL is not valid,
+    or if an error occurs.
+    """
     
     # This should always be True because cfg.parse_cfg_file should always be called before this is,
     # but here for redundancy anyway.
@@ -47,6 +55,7 @@ def _initialize_images():
             response_code = e.code
         
         if not response or response.getcode() != 200:
+            # TODO: Change this to a dialog box
             raise cfg.ImgurSwitcherException("Error reading Imgur: Error Code %d" % response_code)
 
         html = response.read().decode('utf-8')
@@ -56,47 +65,46 @@ def _initialize_images():
         # TODO: change this into a dialog box
         raise cfg.ImgurSwitcherException("The provided URL is not a valid Imgur URL!")
 
-class ImgurImages:
-    
+class ImgurCallbacks:
+    """Holds the callbacks and information they require."""
+
     _image_ids = _initialize_images()
     _image_index = 0 # keep track of which image we're on
     
     @staticmethod
     def next_image():
-        """ TODO: Improve this docstring
-            Callback to use to fetch the next image.
-        """
+        """Callback to use to fetch the next image in the album and set it as the background."""
+        _image_index += 1
+        
         
     @staticmethod
     def prev_image():
-        """ TODO: Improve this docstring
-            Callback to use to fetch the previous image.
-        """
+        """Callback to use to fetch the previous image in the album and set it as the background."""
         print("Prev image callback!")
 
     @staticmethod
+    def random_image():
+        """Callback to fetch a random image in the album and set it as the background."""
+        print("Random image callback!")
+    
+    @staticmethod
     def save_image():
-        """ TODO: Improve this docstring
-            Callback to use to save the current image to file.
+        """Callback to use to save the current image to file.
 
-            More accurately, this will simply move the file from the
-            %TEMP% directory to somewhere the user chooses, since the
-            image was already written to disk to be able to use it as
-            a background.
+        More accurately, this will simply move the file from a temp
+        file (and temp name) to something the user chooses, since the
+        image was already written to disk to be able to use it as
+        a background.
         """
         print("Save image callback!")
 
-    @staticmethod
-    def random_image():
-        """ Callback to select a random image. """
-        print("Random image callback!")
-        
+
     @staticmethod
     def change_url():
-        """ Callback to use to change the URL of the Imgur album to pull images from."""
+        """Callback to use to change the URL of the Imgur album to pull images from."""
         pass
 
     @staticmethod
     def quit():
-        """ Callback to use to cause this program to end."""
+        """Callback to use to cause this program to end."""
         _exit(0)
