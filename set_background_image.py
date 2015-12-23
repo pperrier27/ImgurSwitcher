@@ -17,4 +17,20 @@
     image as a background picture. 
 """
 
-import config
+import config as cfg
+
+if cfg.platform == "Windows":
+    def set_as_background(url):
+        print("Setting background Windows!")
+
+elif cfg.platform == "Darwin":
+    def set_as_background(url):
+        print("Setting background Mac!")
+
+elif cfg.platform == "Linux":
+    def set_as_background(url):
+        print("Setting background Linux!")
+
+# Default handler in case something slipped through, but should NEVER get here
+else:
+    print("How did you get here?")

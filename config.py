@@ -46,17 +46,23 @@ MED_PRIORITY = 5
 HIGH_PRIORITY = 1
 URGENT_PRIORITY = 0 
 
-# Determine the platform we're running on
-platform = _platform.system()
-if not platform:
-    raise ImgurSwitcherException("Can't figure out what platform this is running on, somehow. Cannot run program.")
-
+# The platforms that are currently supported.
+_supported_platforms = ["Windows"]
 
 # Is in this file because this is the "global" file, so every other file can access this.
 class ImgurSwitcherException(Exception):
     """Simple general exception class to use if something goes wrong with this program."""
     def __init__(self, msg=None):
         self.message = msg
+
+# Determine the platform we're running on
+platform = _platform.system()
+if not platform:
+    raise ImgurSwitcherException("Can't figure out what platform this is running on, somehow. Cannot run program.")
+
+elif platform not in _supported_platforms:
+    raise ImgurSwitcherException("Sorry, ImgurSwitcher currently does not support your platform (" + platform + "). Feel free to implement support for it!")
+
 
 def verify_url(url):
     """Determines if url is valid; sets album_id and returns True if it is, returns False if it isn't.
@@ -123,7 +129,7 @@ def on_quit():
         result = re.subn("position:(?: )*(.*)", "position: " + str(album_pos), lines, 1) # at most one replacement
         if result[1] == 1:
             lines = result[0]
-            
+
         else:
             lines += "\nposition: " + str(album_pos)
 

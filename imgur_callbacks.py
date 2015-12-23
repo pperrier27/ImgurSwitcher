@@ -24,7 +24,7 @@ import urllib.request, urllib.parse, urllib.error
 import re
 import pythoncom as com
 import config as cfg
-import set_bg_windows  # TODO: detect the platform and import the correct module based on it
+import set_background_image
 
 def _initialize_images():
     """Initializes ImgurCallbacks' image ID list from the URL given in the config module.
