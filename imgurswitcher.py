@@ -46,6 +46,8 @@ def on_keyboard_event(event):
             event_queue.put((cfg.LOW_PRIORITY, callbacks.ImgurImages.next_image), False, cfg.queue_op_timeout)
         elif(keyPressed == "A"):
             event_queue.put((cfg.LOW_PRIORITY, callbacks.ImgurImages.prev_image), False, cfg.queue_op_timeout)
+        elif(keyPressed == "U"):
+            event_queue.put((cfg.LOW_PRIORITY, callbacks.ImgurImages.random_image), False, cfg.queue_op_timeout)
         elif(keyPressed == "S"):
             event_queue.put((cfg.HIGH_PRIORITY, callbacks.ImgurImages.save_image), False, cfg.queue_op_timeout)
         elif(keyPressed == "U"):

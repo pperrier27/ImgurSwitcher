@@ -87,6 +87,11 @@ class ImgurImages:
         print("Save image callback!")
 
     @staticmethod
+    def random_image():
+        """ Callback to select a random image. """
+        print("Random image callback!")
+        
+    @staticmethod
     def change_url():
         """ Callback to use to change the URL of the Imgur album to pull images from."""
         pass
