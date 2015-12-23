@@ -23,7 +23,7 @@ from threading import Thread
 import pyHook as hook
 import pythoncom as com
 import config as cfg
-import imgur_callbacks as callbacks
+import imgur_callbacks as callbacks # This conveniently calls cfg.parse_config_file() so we don't need to do it again here. TODO: refactor this to be not terrible.
 
 class Worker(Thread):
     """ Class that does the invoking of the queued callbacks
@@ -32,9 +32,9 @@ class Worker(Thread):
 
     def run(self):
         while True:
-            fcn = eventQueue.get()
+            fcn = event_queue.get()
             fcn[1]()  # the event queue contains tuples; the callback is the second item
-            eventQueue.task_done()
+            event_queue.task_done()
 
 def on_keyboard_event(event):
     """ TODO: Make a better docstring, including what different key combos should do
@@ -43,23 +43,22 @@ def on_keyboard_event(event):
     if(event.IsAlt()):
         keyPressed = event.GetKey()
         if(keyPressed == "D"):
-            eventQueue.put((cfg.LOW_PRIORITY, callbacks.ImgurImages.next_image), False, cfg.queue_op_timeout)
+            event_queue.put((cfg.LOW_PRIORITY, callbacks.ImgurImages.next_image), False, cfg.queue_op_timeout)
         elif(keyPressed == "A"):
-            eventQueue.put((cfg.LOW_PRIORITY, callbacks.ImgurImages.prev_image), False, cfg.queue_op_timeout)
+            event_queue.put((cfg.LOW_PRIORITY, callbacks.ImgurImages.prev_image), False, cfg.queue_op_timeout)
         elif(keyPressed == "S"):
-            eventQueue.put((cfg.HIGH_PRIORITY, callbacks.ImgurImages.save_image), False, cfg.queue_op_timeout)
+            event_queue.put((cfg.HIGH_PRIORITY, callbacks.ImgurImages.save_image), False, cfg.queue_op_timeout)
         elif(keyPressed == "U"):
-            eventQueue.put((cfg.HIGH_PRIORITY, callbacks.ImgurImages.change_url), False, cfg.queue_op_timeout)
+            event_queue.put((cfg.HIGH_PRIORITY, callbacks.ImgurImages.change_url), False, cfg.queue_op_timeout)
         elif(keyPressed == "Q"):
-            eventQueue.put((cfg.HIGH_PRIORITY, callbacks.ImgurImages.quit), False, cfg.queue_op_timeout)
+            event_queue.put((cfg.HIGH_PRIORITY, callbacks.ImgurImages.quit), False, cfg.queue_op_timeout)
 
         return False
 
     return True
 
 
-cfg.parse_cfg_file()
-eventQueue = cfg.eventQueue
+event_queue = cfg.event_queue
 workThread = Worker()
 workThread.daemon = True # allow exit to work properly and terminate everything
 workThread.start()

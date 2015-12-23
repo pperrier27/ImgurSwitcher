@@ -20,30 +20,47 @@
 from os import _exit # lets us kill the whole program from a thread, which is needed because the quit functionality 
                      # is called in a thread!
 import urllib.request, urllib.parse, urllib.error
+import re
 import pythoncom as com
 import config as cfg
 
-class ImgurSwitcherException(Exception):
-    """ Simple general exception class to use if something goes wrong with this program. """
-    def __init__(self, msg=None):
-        self.message = msg
-
+cfg.parse_cfg_file() # Need to call this because ImgurImages depends on it
 
 def _initialize_images():
     """ Initializes the image ID list from the given URL in the config module """
     
-    # This should always be true unless someone went and manually edited the value, rather than using the program
-    # to change it.
+    # This should always be True because cfg.parse_cfg_file should always be called before this is,
+    # but here for redundancy anyway.
     if cfg.verify_url(cfg.imgur_album_url):
-        # Do stuff
-        pass
+        # Read the image ID's into a list and return them.
+        # Parts of this code modified from https://github.com/alexgisby/imgur-album-downloader
+        
+        fullListURL = "http://imgur.com/a/" + cfg.album_id + "/layout/blog" # the scriptless version of the album page
+
+        response = None
+        response_code = None
+        try:
+            response = urllib.request.urlopen(url=fullListURL)
+            response_code = response.getcode()
+        except Exception as e:
+            response = False
+            response_code = e.code
+        
+        if not response or response.getcode() != 200:
+            raise cfg.ImgurSwitcherException("Error reading Imgur: Error Code %d" % response_code)
+
+        html = response.read().decode('utf-8')
+        return re.findall('<div id="([a-zA-Z0-9]+)" class="post-image-container', html) # found by inspecting the source of an imgur album page
+
     else:
-        # TODO: make this an error dialog box
-        print("URL is not valid!")
+        # TODO: change this into a dialog box
+        raise cfg.ImgurSwitcherException("The provided URL is not a valid Imgur URL!")
 
 class ImgurImages:
     
-    _imageIds = _initialize_images()
+    _image_ids = _initialize_images()
+    _image_index = 0 # keep track of which image we're on
+    
     @staticmethod
     def next_image():
         """ TODO: Improve this docstring
