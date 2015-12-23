@@ -20,11 +20,12 @@ It is required to call cfg.parse_cfg_file immediately after the
 imports, because this module depends on having some config values set.
 """
 
-import urllib.request, urllib.parse, urllib.error
 import re
+import os
+import urllib.request, urllib.parse, urllib.error
 import pythoncom as com
 import config as cfg
-import set_background_image
+from set_background_image import set_as_background
 
 def _initialize_images():
     """Initializes ImgurCallbacks' image ID list from the URL given in the config module.
@@ -62,17 +63,42 @@ def _initialize_images():
         # TODO: change this into a dialog box
         raise cfg.ImgurSwitcherException("The provided URL is not a valid Imgur URL!")
 
+
 class ImgurCallbacks:
     """Holds the callbacks and information they require."""
 
     _image_ids = _initialize_images()
+    _imgur_stub = r"http://i.imgur.com/"
+    _current_image_path = ""
+    _current_image_id = "" # Use as a caching helper
 
     @staticmethod
     def next_image():
         """Callback to use to fetch the next image in the album and set it as the background."""
-        _image_index += 1
-        image = None
-        set_as_background(image)
+        # cfg.album_pos is 1-indexed
+        index = (cfg.album_pos - 1) % len(ImgurCallbacks._image_ids)
+        
+        # Save values that are about to be overriden that we need later
+        old_image_path = ImgurCallbacks._current_image_path
+        
+        # Need arbitrary image format extension to get to the page with just the image. Will fix to the actual format later.
+        image_url = ImgurCallbacks._imgur_stub + ImgurCallbacks._image_ids[index] + ".jpg" 
+        
+        try:
+            ImgurCallbacks._current_image_path, junk = urllib.request.urlretrieve(image_url)
+        
+        except Exception as e:
+            # For now just leave it alone... TODO: dialog box that warns the user that this operation couldn't complete.            
+            print("Download failed!")
+            return
+
+        if set_as_background(ImgurCallbacks._current_image_path):
+            print("Success at setting bg!")
+            # Delete old image file
+            album_pos += 1
+        else:
+            print("Bg set fail!")
+            # Delete current image file
         
     @staticmethod
     def prev_image():

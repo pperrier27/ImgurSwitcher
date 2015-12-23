@@ -49,7 +49,8 @@ URGENT_PRIORITY = 0
 # The platforms that are currently supported.
 _supported_platforms = ["Windows"]
 
-# Is in this file because this is the "global" file, so every other file can access this.
+# Is in this module because this is the "global" file, so every other file can access this.
+# If this project ever gets more varied custom exceptions, move to a separate exceptions.py module.
 class ImgurSwitcherException(Exception):
     """Simple general exception class to use if something goes wrong with this program."""
     def __init__(self, msg=None):
@@ -108,6 +109,9 @@ def parse_cfg_file():
 
         if album_pos_match:
             album_pos = int(size_match.group(1)) 
+            if album_pos < 1: 
+                album_pos = 1
+                # The case where album_pos is larger than the number of images in the album is handled in the callbacks.
 
         if url_match:
             if verify_url(url_match.group(1)):

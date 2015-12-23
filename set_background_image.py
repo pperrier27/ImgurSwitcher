@@ -22,6 +22,7 @@ import config as cfg
 if cfg.platform == "Windows":
     def set_as_background(url):
         print("Setting background Windows!")
+        return True
 
 elif cfg.platform == "Darwin":
     def set_as_background(url):
