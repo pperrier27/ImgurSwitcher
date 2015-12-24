@@ -100,25 +100,38 @@ def parse_cfg_file():
     """
     with open(CONFIG_FILE_NAME, 'r') as cfg_file:
         lines = cfg_file.read()
-        size_match = re.match("size:(?: )*([0-9]+)", lines)
-        timeout_match = re.match("timeout:(?: )*([0-9]+)", lines)
-        url_match = re.match("url:(?: )*(.*)", lines)
-        album_pos_match = re.match("position:(?: )*([0-9]+)", lines)
+        size_match = re.search("size:(?: )*?([0-9]+)", lines)
+        timeout_match = re.search("timeout:(?: )*?([0-9]+)", lines)
+        url_match = re.search("url:(?: )*?([a-zA-Z0-9:/\.]+)", lines)
+        album_pos_match = re.search("position:(?: )*?([0-9]+)", lines)
+
+        # Work with the global config vars
+        global album_pos
+        global max_queue_size
+        global imgur_album_url
+        global queue_op_timeout
+        global event_queue
 
         # Set the values; if anything fails then defaults will be used.
         if size_match:
             max_queue_size = int(size_match.group(1)) 
-            global event_queue 
-            event_queue = queue.PriorityQueue(max_queue_size) 
+        else:
+            print("FAIL QUEUE")
         
+        event_queue = queue.PriorityQueue(max_queue_size)
+
         if timeout_match:
             queue_op_timeout = int(timeout_match.group(1))
+        else:
+            print("FAIL TIMEOUT")
 
         if album_pos_match:
-            album_pos = int(size_match.group(1)) 
+            album_pos = int(album_pos_match.group(1)) 
             if album_pos < 1: 
                 album_pos = 1
                 # The case where album_pos is larger than the number of images in the album is handled in the callbacks.
+        else:
+            print("FAIL POS")
 
         if url_match:
             if verify_url(url_match.group(1)):
@@ -128,6 +141,8 @@ def parse_cfg_file():
                 # If this is hit, then someone messed with the default value of imgur_album_url and broke it. Go fix it.
                 raise ImgurSwitcherException("You changed the default value of imgur_album_url in config.py and broke the program,"
                     " because it is no longer a valid Imgur URL. Go fix it!")
+        else:
+            print("FAIL URL")
 
 def on_quit():
     """Function to call just before quitting. Writes album_pos to the config file for the next run."""
