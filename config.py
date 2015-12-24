@@ -26,10 +26,13 @@ found or an error occurs, the default values (hardcoded into this module) are us
 import queue
 import re
 import platform as _platform
+import logging
 
 # Name of the config file. Expected to be in the same directory as this script
 CONFIG_FILE_NAME = "config.cfg"
 
+# Name of the log file. Will be created in the same directory as this script.
+LOG_FILE_NAME = "imgur_switcher_log.txt"
 # Arbitrary (constant) limit to the size of the event queue/timeout for events.
 max_queue_size = 200
 queue_op_timeout = 10  # seconds
@@ -39,7 +42,8 @@ queue_op_timeout = 10  # seconds
 # Set in parse_cfg_file, so that MUST be called before using this variable.
 event_queue = None
 imgur_album_url = "http://imgur.com/gallery/wCBYO" # default album
-album_pos = 1 # default position in album (1-indexed)
+album_pos = 0 # default position in album (1-indexed). This is the image we are currently on. 
+              # 0 means no image (i.e. it's kind of like None)
 
 # Queue priorities
 LOW_PRIORITY = 10
@@ -54,6 +58,7 @@ class ImgurSwitcherException(Exception):
     """Simple general exception class to use if something goes wrong with this program."""
     def __init__(self, msg=None):
         self.message = msg
+
 
 # The platforms that are currently supported.
 _supported_platforms = ["Windows"]
@@ -127,8 +132,8 @@ def parse_cfg_file():
 
         if album_pos_match:
             album_pos = int(album_pos_match.group(1)) 
-            if album_pos < 1: 
-                album_pos = 1
+            if album_pos < 0: 
+                album_pos = 0
                 # The case where album_pos is larger than the number of images in the album is handled in the callbacks.
         else:
             print("FAIL POS")

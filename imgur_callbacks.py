@@ -22,6 +22,7 @@ imports, because this module depends on having some config values set.
 
 import re
 import os
+import random
 import urllib.request, urllib.parse, urllib.error
 import pythoncom as com
 import config as cfg
@@ -75,8 +76,76 @@ class ImgurCallbacks:
     @staticmethod
     def next_image():
         """Callback to use to fetch the next image in the album and set it as the background."""
-        # cfg.album_pos is 1-indexed
-        index = (cfg.album_pos - 1) % len(ImgurCallbacks._image_ids)
+        # cfg.album_pos is 1-indexed, so it is the index we need (no need for modification)
+        index = (cfg.album_pos) % len(ImgurCallbacks._image_ids)
+
+        # Need arbitrary image type extension to get to the page with just the image.
+        # We'll assume that the file is a jpg, because it probably is according to 
+        # my interpretation of https://help.imgur.com/hc/en-us/articles/201424906-What-file-types-are-allowed
+        # Alternatively, future development could read the magic bytes of the image and figure out
+        # what image type it was.
+        image_url = ImgurCallbacks._imgur_stub + ImgurCallbacks._image_ids[index] + ".jpg" 
+        
+        try:
+            # We don't need to store these values, we know where the images will be saved
+            junk1, junk2 = urllib.request.urlretrieve(image_url, ImgurCallbacks._img_path) # clobbers the old image
+            
+        except Exception as e:
+            # For now just leave it alone... TODO: dialog box that warns the user that this operation couldn't complete.            
+            print("Download failed!")
+            return
+        
+        if set_as_background(ImgurCallbacks._img_path):
+            print("Success at setting bg!")
+            cfg.album_pos = index + 1
+        
+        else:
+            print("Bg set fail! Try default")
+            # Delete current image file and try the default
+            os.remove(ImgurCallbacks._img_path)
+            if set_as_background(ImgurCallbacks._DEFAULT_IMAGE):
+                print("default image set")
+            else:
+                print("something went terribly wrong")
+        
+    @staticmethod
+    def prev_image():
+        """Callback to use to fetch the previous image in the album and set it as the background."""
+        # cfg.album_pos is 1-indexed, so -1 to adjust to 0-indexing and -1 to get the previous image
+        index = (cfg.album_pos - 2) % len(ImgurCallbacks._image_ids)
+                
+        # Need arbitrary image type extension to get to the page with just a picture.
+        # We'll assume that the file is a jpg, because it probably is according to 
+        # my interpretation of https://help.imgur.com/hc/en-us/articles/201424906-What-file-types-are-allowed
+        # Alternatively, future development could read the magic bytes of the image and figure out
+        # what image type it was.
+        image_url = ImgurCallbacks._imgur_stub + ImgurCallbacks._image_ids[index] + ".jpg" 
+        
+        try:
+            # We don't need to store these values, we know where the images will be saved
+            junk1, junk2 = urllib.request.urlretrieve(image_url, ImgurCallbacks._img_path) # clobbers the old image
+            
+        except Exception as e:
+            # For now just leave it alone... TODO: dialog box that warns the user that this operation couldn't complete.            
+            print("Download failed!")
+            return
+        
+        if set_as_background(ImgurCallbacks._img_path):
+            print("Success at setting bg!")
+            cfg.album_pos = (cfg.album_pos - 1)
+        else:
+            print("Bg set fail! Try default")
+            # Delete current image file and try the default
+            os.remove(ImgurCallbacks._img_path)
+            if set_as_background(ImgurCallbacks._DEFAULT_IMAGE):
+                print("default image set")
+            else:
+                print("something went terribly wrong")
+
+    @staticmethod
+    def random_image():
+        """Callback to fetch a random image in the album and set it as the background."""
+        index = random.randint(0, len(ImgurCallbacks._image_ids))
                 
         # Need arbitrary image type extension to get to the page with just a picture.
         # We'll assume that the file is a jpg, because it probably is according to 
@@ -105,16 +174,6 @@ class ImgurCallbacks:
                 print("default image set")
             else:
                 print("something went terribly wrong")
-        
-    @staticmethod
-    def prev_image():
-        """Callback to use to fetch the previous image in the album and set it as the background."""
-        print("Prev image callback!")
-
-    @staticmethod
-    def random_image():
-        """Callback to fetch a random image in the album and set it as the background."""
-        print("Random image callback!")
     
     @staticmethod
     def save_image():
