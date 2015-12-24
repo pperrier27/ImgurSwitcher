@@ -150,14 +150,22 @@ def parse_cfg_file():
             print("FAIL URL")
 
 def on_quit():
-    """Function to call just before quitting. Writes album_pos to the config file for the next run."""
+    """Function to call just before quitting. Writes album_pos and imgur_album_url to the config file for the next run."""
 
     with open(CONFIG_FILE_NAME, "r+") as cfg_file:
         lines = cfg_file.read()
         
-        # delete the first previous occurrence of the position line, then clear the text from the
+        # delete the first previous occurrence of the position line and the url line, then clear the text from the
         # file and write in the new text
-        result = re.subn("position:(?: )*(.*)", "position: " + str(album_pos), lines, 1) # at most one replacement
+
+        result = re.subn("url:(?: )*?(.*)", "url: " + imgur_album_url, lines, 1) # at most one replacement
+        if result[1] == 1:
+            lines = result[0]
+
+        else:
+            lines = "url: " + imgur_album_url + "\n" + lines
+
+        result = re.subn("position:(?: )*?(.*)", "position: " + str(album_pos), lines, 1) # at most one replacement
         if result[1] == 1:
             lines = result[0]
 
