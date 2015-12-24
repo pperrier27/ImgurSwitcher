@@ -1,3 +1,4 @@
 # Ignore all .jpg files but the default image
 *.jpg
 !default.jpg
+config.cfg
