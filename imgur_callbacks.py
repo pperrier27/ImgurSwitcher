@@ -54,8 +54,21 @@ def _initialize_images():
             response_code = e.code
         
         if not response or response.getcode() != 200:
-            # TODO: Change this to a dialog box
-            raise cfg.ImgurSwitcherException("Error reading Imgur: Error Code %d" % response_code)
+            # It COULD be a single-picture gallery, which doesn't play nicely with being turned into an album (404 error).
+            # Try a straight download of the one picture if we get a 404, see if that works.
+            if response_code == 404:
+                fullListURL = r"http://i.imgur.com/" + cfg.album_id # hardcode imgur stub in because we have to 
+                try:
+                    response = urllib.request.urlopen(url=fullListURL)
+                    response_code = response.getcode()
+                except Exception as e:
+                    response = False
+                    response_code = e.code
+                if not response or response.getcode() != 200:
+                    # TODO: Change this to a dialog box
+                    raise cfg.ImgurSwitcherException("Error reading Imgur: Error Code %d" % response_code)
+            else:
+                raise cfg.ImgurSwitcherException("Error reading Imgur: Error Code %d" % response_code)
 
         html = response.read().decode('utf-8')
         return re.findall('<div id="([a-zA-Z0-9]+)" class="post-image-container', html) # found by inspecting the source of an imgur album page
@@ -68,8 +81,8 @@ class ImgurCallbacks:
     """Holds the callbacks and information they require."""
 
     _image_ids = _initialize_images()
-    _imgur_stub = r"http://i.imgur.com/"
-    # Windows needs absolute paths or it fails
+    imgur_stub = r"http://i.imgur.com/"
+    # Windows needs absolute paths or it fails to set background properly (gives a black screen)
     _img_path = os.path.abspath("images/background.jpg")
     _DEFAULT_IMAGE = os.path.abspath("images/default.jpg")
 
@@ -84,7 +97,7 @@ class ImgurCallbacks:
         # my interpretation of https://help.imgur.com/hc/en-us/articles/201424906-What-file-types-are-allowed
         # Alternatively, future development could read the magic bytes of the image and figure out
         # what image type it was.
-        image_url = ImgurCallbacks._imgur_stub + ImgurCallbacks._image_ids[index] + ".jpg" 
+        image_url = ImgurCallbacks.imgur_stub + ImgurCallbacks._image_ids[index] + ".jpg" 
         
         try:
             # We don't need to store these values, we know where the images will be saved
@@ -111,16 +124,24 @@ class ImgurCallbacks:
     @staticmethod
     def prev_image():
         """Callback to use to fetch the previous image in the album and set it as the background."""
-        # cfg.album_pos is 1-indexed, so -1 to adjust to 0-indexing and -1 to get the previous image
-        index = (cfg.album_pos - 2) % len(ImgurCallbacks._image_ids)
-                
+        # cfg.album_pos is 1-indexed, so cfg.album_pos is the index number for the NEXT image,
+        # cfg.album_pos -1 is the index of the current image, and cfg.album_pos - 2 is the 
+        # index of the previous image (the one we want). This one will take a bit more special case handling
+
+        # Slight "bug" if the starting cfg.album_pos value is one more than some integer multiple
+        # of the album size; calling this will then get you the same image that you currently have.
+        # This is what it SHOULD do, but maybe something should be done about it?
+        index = -1
+        if cfg.album_pos != 0 and len(ImgurCallbacks._image_ids) != 1:
+            index = (cfg.album_pos % len(ImgurCallbacks._image_ids))-2
+
         # Need arbitrary image type extension to get to the page with just a picture.
         # We'll assume that the file is a jpg, because it probably is according to 
         # my interpretation of https://help.imgur.com/hc/en-us/articles/201424906-What-file-types-are-allowed
         # Alternatively, future development could read the magic bytes of the image and figure out
         # what image type it was.
-        image_url = ImgurCallbacks._imgur_stub + ImgurCallbacks._image_ids[index] + ".jpg" 
-        
+        image_url = ImgurCallbacks.imgur_stub + ImgurCallbacks._image_ids[index] + ".jpg" 
+
         try:
             # We don't need to store these values, we know where the images will be saved
             junk1, junk2 = urllib.request.urlretrieve(image_url, ImgurCallbacks._img_path) # clobbers the old image
@@ -132,7 +153,7 @@ class ImgurCallbacks:
         
         if set_as_background(ImgurCallbacks._img_path):
             print("Success at setting bg!")
-            cfg.album_pos = (cfg.album_pos - 1)
+            cfg.album_pos = (index % len(ImgurCallbacks._image_ids)) + 1 # yay for the python modulus behaviour!
         else:
             print("Bg set fail! Try default")
             # Delete current image file and try the default
@@ -145,14 +166,14 @@ class ImgurCallbacks:
     @staticmethod
     def random_image():
         """Callback to fetch a random image in the album and set it as the background."""
-        index = random.randint(0, len(ImgurCallbacks._image_ids))
+        index = random.randint(0, len(ImgurCallbacks._image_ids)-1)
                 
         # Need arbitrary image type extension to get to the page with just a picture.
         # We'll assume that the file is a jpg, because it probably is according to 
         # my interpretation of https://help.imgur.com/hc/en-us/articles/201424906-What-file-types-are-allowed
         # Alternatively, future development could read the magic bytes of the image and figure out
         # what image type it was.
-        image_url = ImgurCallbacks._imgur_stub + ImgurCallbacks._image_ids[index] + ".jpg" 
+        image_url = ImgurCallbacks.imgur_stub + ImgurCallbacks._image_ids[index] + ".jpg" 
         
         try:
             # We don't need to store these values, we know where the images will be saved
@@ -165,7 +186,7 @@ class ImgurCallbacks:
         
         if set_as_background(ImgurCallbacks._img_path):
             print("Success at setting bg!")
-            cfg.album_pos += 1
+            cfg.album_pos = index + 1
         else:
             print("Bg set fail! Try default")
             # Delete current image file and try the default

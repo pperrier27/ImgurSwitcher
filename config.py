@@ -86,7 +86,7 @@ def verify_url(url):
     it's actually valid), so we only have to run the regular expression on the URL once. If this function returns False,
     the caller should immediately do some error handling (probably exit the program).
     """
-    match = re.match("(https?)\:\/\/(www\.)?(?:m\.)?imgur\.com/(a|gallery)/([a-zA-Z0-9]+)(#[0-9]+)?", imgur_album_url)
+    match = re.search("(https?)\:\/\/(www\.)?(?:m\.)?imgur\.com/(a|gallery)/([a-zA-Z0-9]+)(#[0-9]+)?", imgur_album_url)
     global album_id
     if match:
         album_id = match.group(4) # the piece that is the album's unique ID
