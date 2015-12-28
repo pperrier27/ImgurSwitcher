@@ -23,10 +23,18 @@ not expected to be required that often/live for a long time.
 import tkinter
 import tkinter.filedialog
 import tkinter.messagebox
+import tkinter.simpledialog
 
 def save_dialog_box(title = "Save File As...", defaultextension = "", 
                     initialdir=None, initialfile=None, filetypes=None):
     """Show a save dialog box.
+
+    title: The title of the dialog box.
+    defaultextension: The default extension for the file, if not specified by the user.
+    initialdir: The directory to show on dialog box load.
+    initialfile: The initial name for the file to save.
+    filetypes: Not really used, but a list of tuples of the label and the pattern that the file should match
+    e.g. [("All files", "*.*")]
 
     Returns the file name the user wants to save the file as if successful,
     None if not.
@@ -38,3 +46,18 @@ def save_dialog_box(title = "Save File As...", defaultextension = "",
                                                     initialfile=initialfile, initialdir=initialdir)
     root.destroy() 
     return filename
+
+def string_input_box(title="String Entry", prompt="Enter a string: ", initialvalue=""):
+    """Show a dialog box where a string can be input.
+
+    title: The title of the dialog box.
+    prompt: The prompt immediately above the string entry box.
+    initialvalue: The initial value of the string in the entry box.
+    Returns the string that was input, or None if the window was exited.
+    """
+
+    root = tkinter.Tk()
+    root.withdraw() # hide the main tk window
+    result = tkinter.simpledialog.askstring(title=title, prompt=prompt, initialvalue=initialvalue)
+    root.destroy() 
+    return result

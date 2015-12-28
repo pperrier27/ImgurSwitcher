@@ -34,6 +34,7 @@ CONFIG_FILE_NAME = "ImgurSwitcher/config.cfg"
 LOG_FILE_NAME = "imgur_switcher_log.txt"
 
 imgur_album_url = "http://imgur.com/gallery/wCBYO" # default album
+album_id = "wCBYO" # default album_id
 album_pos = 0 # default position in album (1-indexed). This is the image we are currently on. 
               # 0 means no image (i.e. it's kind of like None)
 
@@ -68,15 +69,14 @@ def verify_url(url):
     the unique album ID value from the URL, which is used to fetch the images from it later. It is set here
     because this function should be called before doing any work with imgur_album_url (since this is what makes sure
     it's actually valid), so we only have to run the regular expression on the URL once. If this function returns False,
-    the caller should immediately do some error handling (probably exit the program).
+    the caller should immediately do some error handling.
     """
-    match = re.search("(https?)\:\/\/(www\.)?(?:m\.)?imgur\.com/(a|gallery)/([a-zA-Z0-9]+)(#[0-9]+)?", imgur_album_url)
+    match = re.search("(https?)\:\/\/(www\.)?(?:m\.)?imgur\.com/(a|gallery)/([a-zA-Z0-9]+)(#[0-9]+)?", url)
     global album_id
     if match:
         album_id = match.group(4) # the piece that is the album's unique ID
         return True
     else:
-        album_id = "" # Don't bother setting this to anything useful because the program should be about to fail out
         return False
 
 def parse_cfg_file():
@@ -128,8 +128,12 @@ def parse_cfg_file():
         else:
             print("FAIL URL")
 
-def on_quit():
-    """Function to call just before quitting. Writes album_pos and imgur_album_url to the config file for the next run."""
+def write_config_to_file():
+    """Writes album_pos and imgur_album_url to the config file.
+
+    Call this immediately before quitting to save state for the next run, or after changing
+    the values of imgur_album_url and/or album_pos to force the changes to take hold.
+    """
 
     with open(CONFIG_FILE_NAME, "r+") as cfg_file:
         lines = cfg_file.read()
@@ -181,7 +185,7 @@ def _init():
     """Function that gets the platform and reads the config file.
 
     Does NOT set the platform config, because that would cause a circular reference whenever
-    the platform-specific modules get imported (they import config.py).
+    the platform-specific modules get imported (they import config.py). Call that in __init__.py.
     """
 
     platform = _get_platform() # don't try/except this because we WANT to fail if this throws

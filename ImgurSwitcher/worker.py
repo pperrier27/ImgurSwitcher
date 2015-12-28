@@ -32,5 +32,5 @@ class Worker(Thread):
                 # This means that the user wants to quit the program, since only quit should pass a None callback
                 break
         
-        cfg.on_quit()
+        cfg.write_config_to_file()
         cfg.exit_program()

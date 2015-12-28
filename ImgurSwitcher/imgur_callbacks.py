@@ -222,4 +222,23 @@ class ImgurCallbacks:
     @staticmethod
     def change_url():
         """Callback to use to change the URL of the Imgur album to pull images from."""
-        print("Change url callback!")
+
+        new_url = ""
+        while (new_url != None and not cfg.verify_url(new_url)):
+
+            new_url = dialogs.string_input_box(title="Imgur URL Entry", prompt="Enter the new Imgur album URL to use: ",
+                                                initialvalue=cfg.imgur_album_url)
+
+        if new_url == None:
+            # User cancelled out of the dialog box
+            return
+
+        cfg.imgur_album_url = new_url
+        cfg.album_pos = 0
+
+        # Immediately write new url and position to config file (so that in case of unexpected/unnatural shutdown,
+        # the changes will be saved)
+        cfg.write_config_to_file()
+
+        # Reinitialize the image id's
+        ImgurCallbacks._image_ids = _initialize_images()
