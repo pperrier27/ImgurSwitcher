@@ -32,8 +32,6 @@ def set_as_background(url):
     SPI_SETDESKWALLPAPER = 20 
     return ctypes.windll.user32.SystemParametersInfoW(SPI_SETDESKWALLPAPER, 0, url, 3)
 
-def save_image_dialog():
-    pass 
 
 def exit_program():
     _exit(0)

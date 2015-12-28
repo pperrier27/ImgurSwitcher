@@ -2,3 +2,4 @@
 *.jpg
 !default.jpg
 config.cfg
+**/__pycache__

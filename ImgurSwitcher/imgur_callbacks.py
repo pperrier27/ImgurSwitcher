@@ -25,8 +25,10 @@ expose the function/set its implementation (see existing code for examples).
 import re
 import os
 import random
+import shutil
 import urllib.request, urllib.parse, urllib.error
 import ImgurSwitcher.config as cfg
+import ImgurSwitcher.dialogs as dialogs
 
 def _initialize_images():
     """Initializes ImgurCallbacks' image ID list from the URL given in the config module.
@@ -200,13 +202,22 @@ class ImgurCallbacks:
     def save_image():
         """Callback to use to save the current image to file.
 
-        More accurately, this will simply move the file from a temp
-        file (and temp name) to something the user chooses, since the
+        More accurately, this will simply copy the file from where it is
+        in the image folder to somewhere the user chooses, since the
         image was already written to disk to be able to use it as
         a background.
         """
-        print("Save image callback!")
-
+        if os.path.isfile(ImgurCallbacks._img_path):
+            filename = dialogs.save_dialog_box(title="Save File As...", initialfile="cool_background.jpg", defaultextension=".jpg")
+            if filename:
+                try:
+                    shutil.copyfile(ImgurCallbacks._img_path, filename)
+                except Exception as e:
+                    # TODO: Dialog box this
+                    print("Copy failed!")
+        else:
+            #TODO: Dialog box this
+            print("No file to copy!")
 
     @staticmethod
     def change_url():
