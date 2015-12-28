@@ -25,6 +25,23 @@ URGENT_PRIORITY = 0
 max_queue_size = 200
 queue_op_timeout = 10  # seconds
 
+block_input = False # Used to block adding to the event queue in certain situations.
+
+def block():
+    """Used to block input to the event queue and execution of things in it."""
+    global block_input
+    block_input = True
+
+def unblock():
+    """Used to unblock input to the event queue/resume execution of things in it."""
+    global block_input
+    block_input = False
+
+def is_blocked():
+    """Returns whether or not the event queue is blocked."""
+    return block_input
+
+
 def set_queue_timeout(timeout):
     global queue_op_timeout
     queue_op_timeout = timeout

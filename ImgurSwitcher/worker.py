@@ -24,13 +24,14 @@ class Worker(Thread):
 
     def run(self):
         while True:
-            fcn = eq.event_queue.get()
-            if fcn[1]:
-                fcn[1]()  # the event queue contains tuples; the callback is the second item
-                eq.event_queue.task_done()
-            else:
-                # This means that the user wants to quit the program, since only quit should pass a None callback
-                break
+            if not eq.is_blocked():
+                fcn = eq.event_queue.get()
+                if fcn[1]:
+                    fcn[1]()  # the event queue contains tuples; the callback is the second item
+                    eq.event_queue.task_done()
+                else:
+                    # This means that the user wants to quit the program, since only quit should pass a None callback
+                    break
         
         cfg.write_config_to_file()
         cfg.exit_program()

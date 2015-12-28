@@ -50,7 +50,7 @@ def on_keyboard_event(event):
 
     Note that a None value is currently reserved as the "quit callback".
     """
-    if(event.IsAlt()):
+    if(event.IsAlt() and not eq.is_blocked()):
         keyPressed = event.GetKey()
         if(keyPressed == "D"):
             eq.event_queue.put((eq.LOW_PRIORITY, callbacks.ImgurCallbacks.next_image), False, eq.queue_op_timeout)

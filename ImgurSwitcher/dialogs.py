@@ -24,6 +24,7 @@ import tkinter
 import tkinter.filedialog
 import tkinter.messagebox
 import tkinter.simpledialog
+import ImgurSwitcher.event_queue as eq # most/all of the dialogs need to block the event queue
 
 def save_dialog_box(title = "Save File As...", defaultextension = "", 
                     initialdir=None, initialfile=None, filetypes=None):
@@ -40,11 +41,13 @@ def save_dialog_box(title = "Save File As...", defaultextension = "",
     None if not.
     """
 
+    eq.block()
     root = tkinter.Tk()
     root.withdraw() # hide the main tk window
     filename = tkinter.filedialog.asksaveasfilename(title=title, defaultextension=defaultextension,
                                                     initialfile=initialfile, initialdir=initialdir)
-    root.destroy() 
+    root.destroy()
+    eq.unblock() 
     return filename
 
 def string_input_box(title="String Entry", prompt="Enter a string: ", initialvalue=""):
@@ -55,9 +58,25 @@ def string_input_box(title="String Entry", prompt="Enter a string: ", initialval
     initialvalue: The initial value of the string in the entry box.
     Returns the string that was input, or None if the window was exited.
     """
-
+    eq.block()
     root = tkinter.Tk()
     root.withdraw() # hide the main tk window
     result = tkinter.simpledialog.askstring(title=title, prompt=prompt, initialvalue=initialvalue)
-    root.destroy() 
+    root.destroy()
+    eq.unblock() 
     return result
+
+def error_dialog_box(title="ImgurSwitcher", message="An error occurred."):
+    """Shows an error dialog box.
+
+    title: The title of the dialog box.
+    message: The message to show.
+
+    Returns nothing.
+    """
+    eq.block()
+    root = tkinter.Tk()
+    root.withdraw() # hide the main tk window
+    result = tkinter.messagebox.showerror(title=title, message=message)
+    root.destroy()
+    eq.unblock()
