@@ -16,8 +16,11 @@
 """Module contains the worker class for ImgurSwitcher."""
 
 from threading import Thread
+import logging
 import ImgurSwitcher.config as cfg
 import ImgurSwitcher.event_queue as eq
+
+logger = logging.getLogger(__name__)
 
 class Worker(Thread):
     """Class that does the invoking of the queued callbacks to avoid blocking the main thread."""
@@ -27,11 +30,16 @@ class Worker(Thread):
             if not eq.is_blocked():
                 fcn = eq.event_queue.get()
                 if fcn[1]:
+                    logger.debug("Executing callback: %s", fcn[1].__name__)
                     fcn[1]()  # the event queue contains tuples; the callback is the second item
                     eq.event_queue.task_done()
+                    logger.debug("Done executing callback: %s", fcn[1].__name__)
                 else:
                     # This means that the user wants to quit the program, since only quit should pass a None callback
+                    logger.debug("Quit command sent")
                     break
-        
+            else:
+                logger.debug("Event queue is blocked, cannot execute callbacks")
+
         cfg.write_config_to_file()
         cfg.exit_program()

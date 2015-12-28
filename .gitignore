@@ -3,3 +3,4 @@
 !default.jpg
 config.cfg
 **/__pycache__
+*.txt

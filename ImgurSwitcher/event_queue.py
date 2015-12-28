@@ -14,6 +14,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import queue
+import logging
+
 
 # Queue priorities
 LOW_PRIORITY = 10
@@ -26,6 +28,8 @@ max_queue_size = 200
 queue_op_timeout = 10  # seconds
 
 block_input = False # Used to block adding to the event queue in certain situations.
+
+logger = logging.getLogger(__name__)
 
 def block():
     """Used to block input to the event queue and execution of things in it."""
@@ -45,14 +49,17 @@ def is_blocked():
 def set_queue_timeout(timeout):
     global queue_op_timeout
     queue_op_timeout = timeout
+    logger.debug("Event queue operation timeout set to %i", queue_op_timeout)
 
 def set_max_queue_size(size):
     global max_queue_size
     max_queue_size = size
+    logger.debug("Event queue size set to %i", max_queue_size)
 
 def init():
     """Initializes the event queue."""
     global event_queue
     event_queue = queue.PriorityQueue(max_queue_size)
+    logger.info("Event queue initialized with size %i", max_queue_size)
 
 event_queue = None

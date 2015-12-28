@@ -13,6 +13,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# Name of the log file. Will be created in the same directory as this script.
+LOG_FILE_NAME = "imgur_switcher_log.txt"
+
+import logging
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(filename=LOG_FILE_NAME, filemode='w')
+logger.setLevel(logging.INFO)
+
 import ImgurSwitcher.event_queue
 import ImgurSwitcher.config # also ensures that the initialization is run
 

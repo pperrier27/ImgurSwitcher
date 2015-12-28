@@ -26,9 +26,12 @@ import re
 import os
 import random
 import shutil
+import logging
 import urllib.request, urllib.parse, urllib.error
 import ImgurSwitcher.config as cfg
 import ImgurSwitcher.dialogs as dialogs
+
+logger = logging.getLogger(__name__)
 
 def _initialize_images():
     """Initializes ImgurCallbacks' image ID list from the URL given in the config module.
@@ -46,9 +49,12 @@ def _initialize_images():
         
         fullListURL = "http://imgur.com/a/" + cfg.album_id + "/layout/blog" # the scriptless version of the album page
 
+        logger.info("Initializing image ID list to point to %s" % fullListURL)
+
         response = None
         response_code = None
         try:
+            logger.debug("Attempting to download image list...")
             response = urllib.request.urlopen(url=fullListURL)
             response_code = response.getcode()
         except Exception as e:
@@ -59,6 +65,7 @@ def _initialize_images():
             # It COULD be a single-picture gallery, which doesn't play nicely with being turned into an album (404 error).
             # Try a straight download of the one picture if we get a 404, see if that works.
             if response_code == 404:
+                logger.info("404 code, trying single image download from URL %s...", r"http://i.imgur.com/" + cfg.album_id)
                 fullListURL = r"http://i.imgur.com/" + cfg.album_id # hardcode imgur stub in because we have to 
                 try:
                     response = urllib.request.urlopen(url=fullListURL)
@@ -67,16 +74,20 @@ def _initialize_images():
                     response = False
                     response_code = e.code
                 if not response or response.getcode() != 200:
+                    logger.critical("Error reading Imgur: Error Code %d. Aborting program..." % response_code)
                     dialogs.error_dialog_box("Error reading Imgur: Error Code %d.\n\nImgurSwitcher will shut down." % response_code)
                     raise cfg.ImgurSwitcherException("Error reading Imgur: Error Code %d" % response_code)
             else:
+                logger.critical("Error reading Imgur: Error Code %d. Aborting program..." % response_code)
                 dialogs.error_dialog_box("Error reading Imgur: Error Code %d.\n\nImgurSwitcher will shut down." % response_code)
                 raise cfg.ImgurSwitcherException("Error reading Imgur: Error Code %d" % response_code)
 
         html = response.read().decode('utf-8')
+        logger.info("Image list download successful. Image list initialized")
         return re.findall('<div id="([a-zA-Z0-9]+)" class="post-image-container', html) # found by inspecting the source of an imgur album page
 
     else:
+        logger.critical("The provided URL is not a valid Imgur URL! Aborting program...")
         dialogs.error_dialog_box("The provided URL is not a valid Imgur URL!\n\nImgurSwitcher will shut down.")
         raise cfg.ImgurSwitcherException("The provided URL is not a valid Imgur URL!")
 
@@ -94,6 +105,7 @@ class ImgurCallbacks:
         """Callback to use to fetch the next image in the album and set it as the background."""
         # cfg.album_pos is 1-indexed, so it is the index we need (no need for modification)
         index = (cfg.album_pos) % len(ImgurCallbacks._image_ids)
+        logger.debug("Index is %i", index)
 
         # Need arbitrary image type extension to get to the page with just the image.
         # We'll assume that the file is a jpg, because it probably is according to 
@@ -101,22 +113,24 @@ class ImgurCallbacks:
         # Alternatively, future development could read the magic bytes of the image and figure out
         # what image type it was.
         image_url = ImgurCallbacks.imgur_stub + ImgurCallbacks._image_ids[index] + ".jpg" 
-        
+        logger.info("Downloading image from URL: %s", image_url)
         try:
             # We don't need to store these values, we know where the images will be saved
             junk1, junk2 = urllib.request.urlretrieve(image_url, ImgurCallbacks._img_path) # clobbers the old image
             
         except Exception as e:
-            # Just report it and leave it alone...       
+            # Just report it and leave it alone...
+            logger.error("Download from URL: %s failed!", image_url)    
             dialogs.error_dialog_box(title="Download Error" , message="Image download failed!")
             return
         
         if cfg.set_as_background(ImgurCallbacks._img_path):
-            print("Success at setting bg!")
+            logger.debug("Successfully set background")
             cfg.album_pos = index + 1
+            logger.debug("New index is %i", cfg.album_pos)
         
         else:
-            print("Bg set fail! Try default")
+            logger.warning("Setting background failed, trying the default image...")
             # Delete current image file and try the default
             try:
                 os.remove(ImgurCallbacks._img_path)
@@ -124,8 +138,9 @@ class ImgurCallbacks:
                 # Doesn't matter, just don't kill the program
                 pass 
             if cfg.set_as_background(ImgurCallbacks._DEFAULT_IMAGE):
-                print("default image set")
+                logger.warning("Successfully set default background")
             else:
+                logger.critical("Something went terribly wrong...")
                 dialogs.error_dialog_box(title="Critical Failure" , message="Something went terribly wrong...")
         
     @staticmethod
@@ -141,6 +156,7 @@ class ImgurCallbacks:
         index = -1
         if cfg.album_pos != 0 and len(ImgurCallbacks._image_ids) != 1:
             index = (cfg.album_pos % len(ImgurCallbacks._image_ids))-2
+        logger.debug("Index is %i", index)
 
         # Need arbitrary image type extension to get to the page with just a picture.
         # We'll assume that the file is a jpg, because it probably is according to 
@@ -148,21 +164,24 @@ class ImgurCallbacks:
         # Alternatively, future development could read the magic bytes of the image and figure out
         # what image type it was.
         image_url = ImgurCallbacks.imgur_stub + ImgurCallbacks._image_ids[index] + ".jpg" 
-
+        logger.info("Downloading image from URL: %s", image_url)
+        
         try:
             # We don't need to store these values, we know where the images will be saved
             junk1, junk2 = urllib.request.urlretrieve(image_url, ImgurCallbacks._img_path) # clobbers the old image
             
         except Exception as e:
-            # Report it and leave it alone           
+            # Report it and leave it alone 
+            logger.error("Download from URL: %s failed!", image_url)              
             dialogs.error_dialog_box(title="Download Error" , message="Image download failed!")
             return
         
         if cfg.set_as_background(ImgurCallbacks._img_path):
-            print("Success at setting bg!")
+            logger.debug("Successfully set background")
             cfg.album_pos = (index % len(ImgurCallbacks._image_ids)) + 1 # yay for the python modulus behaviour!
+            logger.debug("New index is %i", cfg.album_pos)
         else:
-            print("Bg set fail! Try default")
+            logger.warning("Setting background failed, trying the default image...")
             # Delete current image file and try the default
             try:
                 os.remove(ImgurCallbacks._img_path)
@@ -171,45 +190,53 @@ class ImgurCallbacks:
                 pass 
 
             if cfg.set_as_background(ImgurCallbacks._DEFAULT_IMAGE):
-                print("default image set")
+                logger.warning("Successfully set default background")
             else:
+                logger.critical("Something went terribly wrong...")
                 dialogs.error_dialog_box(title="Critical Failure" , message="Something went terribly wrong...")
 
     @staticmethod
     def random_image():
         """Callback to fetch a random image in the album and set it as the background."""
-        index = random.randint(0, len(ImgurCallbacks._image_ids)-1)
                 
+        index = random.randint(0, len(ImgurCallbacks._image_ids)-1)
+        logger.debug("Index is %i", index)
+       
         # Need arbitrary image type extension to get to the page with just a picture.
         # We'll assume that the file is a jpg, because it probably is according to 
         # my interpretation of https://help.imgur.com/hc/en-us/articles/201424906-What-file-types-are-allowed
         # Alternatively, future development could read the magic bytes of the image and figure out
         # what image type it was.
         image_url = ImgurCallbacks.imgur_stub + ImgurCallbacks._image_ids[index] + ".jpg" 
-        
+        logger.info("Downloading image from URL: %s", image_url)
+
         try:
             # We don't need to store these values, we know where the images will be saved
             junk1, junk2 = urllib.request.urlretrieve(image_url, ImgurCallbacks._img_path) # clobbers the old image
             
         except Exception as e:
-            # Report it and leave it alone           
+            # Report it and leave it alone
+            logger.error("Download from URL: %s failed!", image_url)                         
             dialogs.error_dialog_box(title="Download Error" , message="Image download failed!")
             return
         
         if cfg.set_as_background(ImgurCallbacks._img_path):
-            print("Success at setting bg!")
+            logger.debug("Successfully set background")
             cfg.album_pos = index + 1
+            logger.debug("New index is %i", cfg.album_pos)
         else:
-            print("Bg set fail! Try default")
+            logger.warning("Setting background failed, trying the default image...")
             # Delete current image file and try the default
             try:
                 os.remove(ImgurCallbacks._img_path)
             except Exception as e:
                 # Doesn't matter, just don't kill the program
                 pass 
+
             if cfg.set_as_background(ImgurCallbacks._DEFAULT_IMAGE):
-                print("default image set")
+                logger.warning("Successfully set default background")
             else:
+                logger.critical("Something went terribly wrong...")
                 dialogs.error_dialog_box(title="Critical Failure" , message="Something went terribly wrong...")
 
     @staticmethod
@@ -224,11 +251,16 @@ class ImgurCallbacks:
         if os.path.isfile(ImgurCallbacks._img_path):
             filename = dialogs.save_dialog_box(title="Save File As...", initialfile="cool_background.jpg", defaultextension=".jpg")
             if filename:
+                logger.info("Saving file to %s", filename)
                 try:
                     shutil.copyfile(ImgurCallbacks._img_path, filename)
                 except Exception as e:
+                    logger.error("The copy operation failed")
                     dialogs.error_dialog_box(title="Copy Failed" , message="The copy operation failed!")
+            else:
+                logger.info("Cancelled save image operation")
         else:
+            logger.warning("No image to save, doing nothing...")
             dialogs.warning_dialog_box(title="No File Exists" , message="There is no image to save!")
 
     @staticmethod
@@ -240,6 +272,7 @@ class ImgurCallbacks:
 
             if not first_time:
                 # If we hit this, then the URL was not valid so the user should be prompted.
+                logger.error("The provided URL was not a valid Imgur album URL! URL: %s", new_url)
                 dialogs.error_dialog_box(title="Invalid URL" , message="The provided URL is not a valid Imgur album URL!")
 
             new_url = dialogs.string_input_box(title="Imgur URL Entry", prompt="Enter the new Imgur album URL to use: ",
@@ -250,6 +283,7 @@ class ImgurCallbacks:
             # User cancelled out of the dialog box
             return
 
+        logger.info("Changing Imgur album URL to %s", new_url)
         cfg.imgur_album_url = new_url
         cfg.album_pos = 0
 

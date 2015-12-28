@@ -21,19 +21,23 @@ save images or to warn the user), and hooking into keyboard presses.
 """
 
 import ctypes
+import logging
 import pyHook as hook
 import pythoncom as com
 from os import _exit # fugly but it works to exit
 import ImgurSwitcher.event_queue as eq
 import ImgurSwitcher.imgur_callbacks as callbacks
 
+logger = logging.getLogger(__name__)
+
 def set_as_background(url):
-    print("Setting background Windows!")
+    logger.debug("Attempting to set Windows background...")
     SPI_SETDESKWALLPAPER = 20 
     return ctypes.windll.user32.SystemParametersInfoW(SPI_SETDESKWALLPAPER, 0, url, 3)
 
 
 def exit_program():
+    logger.info("Exiting program (Windows)...")
     _exit(0)
 
 def on_keyboard_event(event):
@@ -54,17 +58,22 @@ def on_keyboard_event(event):
         keyPressed = event.GetKey()
         if(keyPressed == "D"):
             eq.event_queue.put((eq.LOW_PRIORITY, callbacks.ImgurCallbacks.next_image), False, eq.queue_op_timeout)
+            logger.debug("Loaded callback: " + callbacks.ImgurCallbacks.next_image.__name__ + " into event queue")
         elif(keyPressed == "A"):
             eq.event_queue.put((eq.LOW_PRIORITY, callbacks.ImgurCallbacks.prev_image), False, eq.queue_op_timeout)
+            logger.debug("Loaded callback: " + callbacks.ImgurCallbacks.prev_image.__name__ + " into event queue")
         elif(keyPressed == "R"):
             eq.event_queue.put((eq.LOW_PRIORITY, callbacks.ImgurCallbacks.random_image), False, eq.queue_op_timeout)
+            logger.debug("Loaded callback: " + callbacks.ImgurCallbacks.random_image.__name__ + " into event queue")
         elif(keyPressed == "S"):
             eq.event_queue.put((eq.HIGH_PRIORITY, callbacks.ImgurCallbacks.save_image), False, eq.queue_op_timeout)
+            logger.debug("Loaded callback: " + callbacks.ImgurCallbacks.save_image.__name__ + " into event queue")
         elif(keyPressed == "U"):
             eq.event_queue.put((eq.HIGH_PRIORITY, callbacks.ImgurCallbacks.change_url), False, eq.queue_op_timeout)
+            logger.debug("Loaded callback: " + callbacks.ImgurCallbacks.change_url.__name__ + " into event queue")
         elif(keyPressed == "Q"):
             eq.event_queue.put((eq.HIGH_PRIORITY, None), False, eq.queue_op_timeout) # None is reserved for quitting
-
+            logger.debug("Loaded quit command into event queue")
         return False
 
     return True
@@ -75,6 +84,7 @@ def main():
     Hooks into the message pipe to look for keyboard events.
     """
 
+    logger.info("Starting Windows main...")
     hookManager = hook.HookManager()
     hookManager.KeyDown = on_keyboard_event
     hookManager.HookKeyboard()

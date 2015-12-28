@@ -26,12 +26,12 @@ import platform
 import logging
 import ImgurSwitcher.event_queue as eq
 import ImgurSwitcher.exceptions as xcpt
+import ImgurSwitcher.dialogs as dialogs
+
+logger = logging.getLogger(__name__)
 
 # Name of the config file. Expected to be in the same directory as this module
 CONFIG_FILE_NAME = "ImgurSwitcher/config.cfg"
-
-# Name of the log file. Will be created in the same directory as this script.
-LOG_FILE_NAME = "imgur_switcher_log.txt"
 
 imgur_album_url = "http://imgur.com/gallery/wCBYO" # default album
 album_id = "wCBYO" # default album_id
@@ -57,9 +57,12 @@ def _get_platform():
     global _platform
     _platform = platform.system()
     if not _platform:
+        dialogs.error_dialog_box("Platform Not Found", "Can't figure out what platform this is running on, somehow. Cannot run program.")
         raise xcpt.ImgurSwitcherException("Can't figure out what platform this is running on, somehow. Cannot run program.")
 
     elif _platform not in _supported_platforms:
+        dialogs.error_dialog_box("Platform Not Supported", "Sorry, ImgurSwitcher currently does not support your platform (" + _platform + ")." + 
+                                "\n\nFeel free to implement support for it!")
         raise xcpt.ImgurSwitcherException("Sorry, ImgurSwitcher currently does not support your platform (" + _platform + "). Feel free to implement support for it!")
 
 def verify_url(url):
@@ -75,8 +78,10 @@ def verify_url(url):
     global album_id
     if match:
         album_id = match.group(4) # the piece that is the album's unique ID
+        logger.info("URL match successful. URL: %s, Album ID: %s", url, album_id)
         return True
     else:
+        logger.warning("URL match unsuccessful. Attempted URL: %s", url)
         return False
 
 def parse_cfg_file():
@@ -101,32 +106,44 @@ def parse_cfg_file():
         # Set the values; if anything fails then defaults will be used.
         if size_match:
             eq.set_max_queue_size(int(size_match.group(1)))
+            logger.info("Setting max queue size to %i from config file", eq.max_queue_size)
         else:
-            print("FAIL QUEUE")
+            logger.warning("Could not get queue size from config file; using default value of %i", eq.max_queue_size)
         
         if timeout_match:
             eq.set_queue_timeout(int(timeout_match.group(1)))
+            logger.info("Setting queue operation timeout value to %i from config file", eq.queue_op_timeout)
         else:
-            print("FAIL TIMEOUT")
+            logger.warning("Could not get queue operation timeout value from config file; using default value of %i", eq.queue_op_timeout)
 
         if album_pos_match:
-            album_pos = int(album_pos_match.group(1)) 
-            if album_pos < 0: 
+            album_pos = int(album_pos_match.group(1))
+            logger.info("Setting album position to %i from config file", album_pos)
+            if album_pos < 0:
+                logger.info("Correcting album position to %i since config value file was negative", 0)
                 album_pos = 0
                 # The case where album_pos is larger than the number of images in the album is handled in the callbacks.
         else:
-            print("FAIL POS")
+            logger.warning("Could not get album position from config file; using default value of %i", album_pos)
 
+        url_valid = False
         if url_match:
             if verify_url(url_match.group(1)):
                 imgur_album_url = url_match.group(1)
-            elif not verify_url(imgur_album_url):
-                # This checks the default URL, and also is needed so that the album_key variable is set properly.
-                # If this is hit, then someone messed with the default value of imgur_album_url and broke it. Go fix it.
-                raise ImgurSwitcherException("You changed the default value of imgur_album_url in config.py and broke the program,"
-                    " because it is no longer a valid Imgur URL. Go fix it!")
+                url_valid = True
+                logger.info("Setting Imgur album URL to %s from config file", imgur_album_url)
         else:
-            print("FAIL URL")
+            logger.warning("Could not get imgur album URL from config file; trying default value of %i", imgur_album_url)
+
+        # This checks the default URL if no match was found in the config file,
+        # and also is needed so that the album_key variable is set properly in case of having 
+        # to use the default.
+        if not url_valid and not verify_url(imgur_album_url):
+            # If this is hit, then someone messed with the default value of imgur_album_url and broke it. Go fix it.
+            logger.critical("Default Imgur album URL is not valid! URL: %s Aborting...", imgur_album_url)
+            dialogs.error_dialog_box("URL Not Valid", "Default Imgur album URL is not valid! URL: " + imgur_album_url + "\n\nAborting program...")
+            raise ImgurSwitcherException("You changed the default value of imgur_album_url in config.py and broke the program,"
+                " because it is no longer a valid Imgur URL. Go fix it!")
 
 def write_config_to_file():
     """Writes album_pos and imgur_album_url to the config file.
@@ -160,6 +177,8 @@ def write_config_to_file():
         cfg_file.truncate()
         cfg_file.write(lines)
 
+        logger.info("Wrote configuration info to file. URL: %s, album position: %i", imgur_album_url, album_pos)
+
 def set_platform_config():
     """Function that sets up the (platform-dependent) configuration/variables that the other modules in this package rely on.
 
@@ -173,13 +192,14 @@ def set_platform_config():
     global exit_program
 
     if _platform == "Windows":
+        logger.info("Current platform is Windows")
         import ImgurSwitcher.windows as current_platform
     # Add other supported platform configurations here.
     
     Main = current_platform.main
     set_as_background = current_platform.set_as_background
     exit_program = current_platform.exit_program
-
+    logger.info("Platform-specific callbacks were set")
 
 def _init():
     """Function that gets the platform and reads the config file.
@@ -187,8 +207,9 @@ def _init():
     Does NOT set the platform config, because that would cause a circular reference whenever
     the platform-specific modules get imported (they import config.py). Call that in __init__.py.
     """
-
+    logger.info("Initializing configuration settings")
     platform = _get_platform() # don't try/except this because we WANT to fail if this throws
     parse_cfg_file()
+    logger.info("Configuration settings initialized")
 
 _init() # do initialization and setup on first import
