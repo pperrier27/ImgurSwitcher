@@ -268,7 +268,7 @@ class ImgurCallbacks:
         """Callback to use to change the URL of the Imgur album to pull images from."""
         new_url = ""
         first_time = True # used to emulate a do-while loop
-        while (first_time or (new_url != None and not cfg.verify_url(new_url))):
+        while (first_time or (new_url is not None and not cfg.verify_url(new_url))):
 
             if not first_time:
                 # If we hit this, then the URL was not valid so the user should be prompted.
@@ -279,7 +279,7 @@ class ImgurCallbacks:
                                                 initialvalue=cfg.imgur_album_url)
             first_time = False
 
-        if new_url == None:
+        if new_url is None:
             # User cancelled out of the dialog box
             return
 
