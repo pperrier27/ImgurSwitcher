@@ -1,5 +1,4 @@
-Security hole for exes?
-Image caching?
+Image caching
 Current focus is desktop only
 Logging
 More platforms supported
