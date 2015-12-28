@@ -16,17 +16,17 @@
 
 """Module contains methods used for callbacks.
 
-It is required to call cfg.parse_cfg_file immediately after the
-imports, because this module depends on having some config values set.
+The callbacks themselves apply across all platforms, but the implementation
+specifics may vary. For implementation-specific functionality, put a function in 
+the appropriate platform-specific module in this package and then update config.py to
+expose the function/set its implementation (see existing code for examples).
 """
 
 import re
 import os
 import random
 import urllib.request, urllib.parse, urllib.error
-import pythoncom as com
-import config as cfg
-from set_background_image import set_as_background
+import ImgurSwitcher.config as cfg
 
 def _initialize_images():
     """Initializes ImgurCallbacks' image ID list from the URL given in the config module.
@@ -83,8 +83,8 @@ class ImgurCallbacks:
     _image_ids = _initialize_images()
     imgur_stub = r"http://i.imgur.com/"
     # Windows needs absolute paths or it fails to set background properly (gives a black screen)
-    _img_path = os.path.abspath("images/background.jpg")
-    _DEFAULT_IMAGE = os.path.abspath("images/default.jpg")
+    _img_path = os.path.abspath("ImgurSwitcher/images/background.jpg")
+    _DEFAULT_IMAGE = os.path.abspath("ImgurSwitcher/images/default.jpg")
 
     @staticmethod
     def next_image():
@@ -108,7 +108,7 @@ class ImgurCallbacks:
             print("Download failed!")
             return
         
-        if set_as_background(ImgurCallbacks._img_path):
+        if cfg.set_as_background(ImgurCallbacks._img_path):
             print("Success at setting bg!")
             cfg.album_pos = index + 1
         
@@ -116,7 +116,7 @@ class ImgurCallbacks:
             print("Bg set fail! Try default")
             # Delete current image file and try the default
             os.remove(ImgurCallbacks._img_path)
-            if set_as_background(ImgurCallbacks._DEFAULT_IMAGE):
+            if cfg.set_as_background(ImgurCallbacks._DEFAULT_IMAGE):
                 print("default image set")
             else:
                 print("something went terribly wrong")
@@ -151,14 +151,14 @@ class ImgurCallbacks:
             print("Download failed!")
             return
         
-        if set_as_background(ImgurCallbacks._img_path):
+        if cfg.set_as_background(ImgurCallbacks._img_path):
             print("Success at setting bg!")
             cfg.album_pos = (index % len(ImgurCallbacks._image_ids)) + 1 # yay for the python modulus behaviour!
         else:
             print("Bg set fail! Try default")
             # Delete current image file and try the default
             os.remove(ImgurCallbacks._img_path)
-            if set_as_background(ImgurCallbacks._DEFAULT_IMAGE):
+            if cfg.set_as_background(ImgurCallbacks._DEFAULT_IMAGE):
                 print("default image set")
             else:
                 print("something went terribly wrong")
@@ -184,14 +184,14 @@ class ImgurCallbacks:
             print("Download failed!")
             return
         
-        if set_as_background(ImgurCallbacks._img_path):
+        if cfg.set_as_background(ImgurCallbacks._img_path):
             print("Success at setting bg!")
             cfg.album_pos = index + 1
         else:
             print("Bg set fail! Try default")
             # Delete current image file and try the default
             os.remove(ImgurCallbacks._img_path)
-            if set_as_background(ImgurCallbacks._DEFAULT_IMAGE):
+            if cfg.set_as_background(ImgurCallbacks._DEFAULT_IMAGE):
                 print("default image set")
             else:
                 print("something went terribly wrong")
