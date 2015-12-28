@@ -67,16 +67,17 @@ def _initialize_images():
                     response = False
                     response_code = e.code
                 if not response or response.getcode() != 200:
-                    # TODO: Change this to a dialog box
+                    dialogs.error_dialog_box("Error reading Imgur: Error Code %d.\n\nImgurSwitcher will shut down." % response_code)
                     raise cfg.ImgurSwitcherException("Error reading Imgur: Error Code %d" % response_code)
             else:
+                dialogs.error_dialog_box("Error reading Imgur: Error Code %d.\n\nImgurSwitcher will shut down." % response_code)
                 raise cfg.ImgurSwitcherException("Error reading Imgur: Error Code %d" % response_code)
 
         html = response.read().decode('utf-8')
         return re.findall('<div id="([a-zA-Z0-9]+)" class="post-image-container', html) # found by inspecting the source of an imgur album page
 
     else:
-        # TODO: change this into a dialog box
+        dialogs.error_dialog_box("The provided URL is not a valid Imgur URL!\n\nImgurSwitcher will shut down.")
         raise cfg.ImgurSwitcherException("The provided URL is not a valid Imgur URL!")
 
 class ImgurCallbacks:
@@ -106,8 +107,8 @@ class ImgurCallbacks:
             junk1, junk2 = urllib.request.urlretrieve(image_url, ImgurCallbacks._img_path) # clobbers the old image
             
         except Exception as e:
-            # For now just leave it alone... TODO: dialog box that warns the user that this operation couldn't complete.            
-            print("Download failed!")
+            # Just report it and leave it alone...       
+            dialogs.error_dialog_box(title="Download Error" , message="Image download failed!")
             return
         
         if cfg.set_as_background(ImgurCallbacks._img_path):
@@ -117,11 +118,15 @@ class ImgurCallbacks:
         else:
             print("Bg set fail! Try default")
             # Delete current image file and try the default
-            os.remove(ImgurCallbacks._img_path)
+            try:
+                os.remove(ImgurCallbacks._img_path)
+            except Exception as e:
+                # Doesn't matter, just don't kill the program
+                pass 
             if cfg.set_as_background(ImgurCallbacks._DEFAULT_IMAGE):
                 print("default image set")
             else:
-                print("something went terribly wrong")
+                dialogs.error_dialog_box(title="Critical Failure" , message="Something went terribly wrong...")
         
     @staticmethod
     def prev_image():
@@ -149,8 +154,8 @@ class ImgurCallbacks:
             junk1, junk2 = urllib.request.urlretrieve(image_url, ImgurCallbacks._img_path) # clobbers the old image
             
         except Exception as e:
-            # For now just leave it alone... TODO: dialog box that warns the user that this operation couldn't complete.            
-            print("Download failed!")
+            # Report it and leave it alone           
+            dialogs.error_dialog_box(title="Download Error" , message="Image download failed!")
             return
         
         if cfg.set_as_background(ImgurCallbacks._img_path):
@@ -159,11 +164,16 @@ class ImgurCallbacks:
         else:
             print("Bg set fail! Try default")
             # Delete current image file and try the default
-            os.remove(ImgurCallbacks._img_path)
+            try:
+                os.remove(ImgurCallbacks._img_path)
+            except Exception as e:
+                # Doesn't matter, just don't kill the program
+                pass 
+
             if cfg.set_as_background(ImgurCallbacks._DEFAULT_IMAGE):
                 print("default image set")
             else:
-                print("something went terribly wrong")
+                dialogs.error_dialog_box(title="Critical Failure" , message="Something went terribly wrong...")
 
     @staticmethod
     def random_image():
@@ -182,8 +192,8 @@ class ImgurCallbacks:
             junk1, junk2 = urllib.request.urlretrieve(image_url, ImgurCallbacks._img_path) # clobbers the old image
             
         except Exception as e:
-            # For now just leave it alone... TODO: dialog box that warns the user that this operation couldn't complete.            
-            print("Download failed!")
+            # Report it and leave it alone           
+            dialogs.error_dialog_box(title="Download Error" , message="Image download failed!")
             return
         
         if cfg.set_as_background(ImgurCallbacks._img_path):
@@ -192,12 +202,16 @@ class ImgurCallbacks:
         else:
             print("Bg set fail! Try default")
             # Delete current image file and try the default
-            os.remove(ImgurCallbacks._img_path)
+            try:
+                os.remove(ImgurCallbacks._img_path)
+            except Exception as e:
+                # Doesn't matter, just don't kill the program
+                pass 
             if cfg.set_as_background(ImgurCallbacks._DEFAULT_IMAGE):
                 print("default image set")
             else:
-                print("something went terribly wrong")
-    
+                dialogs.error_dialog_box(title="Critical Failure" , message="Something went terribly wrong...")
+
     @staticmethod
     def save_image():
         """Callback to use to save the current image to file.
@@ -213,21 +227,24 @@ class ImgurCallbacks:
                 try:
                     shutil.copyfile(ImgurCallbacks._img_path, filename)
                 except Exception as e:
-                    # TODO: Dialog box this
-                    print("Copy failed!")
+                    dialogs.error_dialog_box(title="Copy Failed" , message="The copy operation failed!")
         else:
-            #TODO: Dialog box this
-            print("No file to copy!")
+            dialogs.warning_dialog_box(title="No File Exists" , message="There is no image to save!")
 
     @staticmethod
     def change_url():
         """Callback to use to change the URL of the Imgur album to pull images from."""
-
         new_url = ""
-        while (new_url != None and not cfg.verify_url(new_url)):
+        first_time = True # used to emulate a do-while loop
+        while (first_time or (new_url != None and not cfg.verify_url(new_url))):
+
+            if not first_time:
+                # If we hit this, then the URL was not valid so the user should be prompted.
+                dialogs.error_dialog_box(title="Invalid URL" , message="The provided URL is not a valid Imgur album URL!")
 
             new_url = dialogs.string_input_box(title="Imgur URL Entry", prompt="Enter the new Imgur album URL to use: ",
                                                 initialvalue=cfg.imgur_album_url)
+            first_time = False
 
         if new_url == None:
             # User cancelled out of the dialog box

@@ -80,3 +80,18 @@ def error_dialog_box(title="ImgurSwitcher", message="An error occurred."):
     result = tkinter.messagebox.showerror(title=title, message=message)
     root.destroy()
     eq.unblock()
+
+def warning_dialog_box(title="ImgurSwitcher", message="A warning occurred."):
+    """Shows a warning dialog box.
+
+    title: The title of the dialog box.
+    message: The message to show.
+
+    Returns nothing.
+    """
+    eq.block()
+    root = tkinter.Tk()
+    root.withdraw() # hide the main tk window
+    result = tkinter.messagebox.showwarning(title=title, message=message)
+    root.destroy()
+    eq.unblock()
