@@ -285,3 +285,13 @@ class ImgurCallbacks:
 
         # Reinitialize the image id's
         ImgurCallbacks._image_ids = _initialize_images()
+
+    @staticmethod
+    def quit_program():
+        """Callback to use to quit the program."""
+
+        # Make sure that the user REALLY wants to quit
+        result = dialogs.confirm_dialog_box(message="Are you sure you want to stop ImgurSwitcher?")
+        if result:
+            cfg.write_config_to_file()
+            cfg.exit_program()

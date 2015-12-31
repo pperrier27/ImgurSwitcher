@@ -53,8 +53,6 @@ def on_keyboard_event(event):
     ALT+S: Save the current image to the user's computer (i.e. copy it so it's not deleted when the image changes)
     ALT+U: Change the Imgur album that pictures are pulled from (by changing the URL in the config file).
     ALT+Q: Quit this program.
-
-    Note that a None value is currently reserved as the "quit callback".
     """
     if(event.IsAlt() and not eq.is_blocked()):
         keyPressed = event.GetKey()
@@ -74,7 +72,7 @@ def on_keyboard_event(event):
             eq.event_queue.put(eq.TupleSortingOn0((eq.HIGH_PRIORITY, callbacks.ImgurCallbacks.change_url)), False, eq.queue_op_timeout)
             logger.debug("Loaded callback: " + callbacks.ImgurCallbacks.change_url.__name__ + " into event queue")
         elif(keyPressed == "Q"):
-            eq.event_queue.put(eq.TupleSortingOn0((eq.HIGH_PRIORITY, None)), False, eq.queue_op_timeout) # None is reserved for quitting
+            eq.event_queue.put(eq.TupleSortingOn0((eq.HIGH_PRIORITY, callbacks.ImgurCallbacks.quit_program)), False, eq.queue_op_timeout) # None is reserved for quitting
             logger.debug("Loaded quit command into event queue")
         return False
 

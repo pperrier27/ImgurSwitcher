@@ -95,3 +95,19 @@ def warning_dialog_box(title="ImgurSwitcher", message="A warning occurred."):
     result = tkinter.messagebox.showwarning(title=title, message=message)
     root.destroy()
     eq.unblock()
+
+def confirm_dialog_box(title="ImgurSwitcher", message="Do you want to proceed?"):
+    """Shows a confirm dialog box.
+
+    title: The title of the dialog box.
+    message: The message to show.
+
+    Returns what the user selected (True or False for Ok or Cancel).
+    """
+    eq.block()
+    root = tkinter.Tk()
+    root.withdraw() # hide the main tk window
+    result = tkinter.messagebox.askokcancel(title=title, message=message)
+    root.destroy()
+    eq.unblock()
+    return result
