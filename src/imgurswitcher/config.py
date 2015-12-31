@@ -21,6 +21,7 @@ This function uses this module's knowledge of the platform to set up these speci
 whenever they need to do something platform-specific.
 """
 
+import os
 import re
 import platform
 import logging
@@ -31,7 +32,7 @@ import imgurswitcher.dialogs as dialogs
 logger = logging.getLogger(__name__)
 
 # Name of the config file. Expected to be in the same directory as this module
-CONFIG_FILE_NAME = "ImgurSwitcher/config.cfg"
+CONFIG_FILE_NAME = os.path.abspath("imgurswitcher/config.cfg")
 
 imgur_album_url = "http://imgur.com/gallery/wCBYO" # default album
 album_id = "wCBYO" # default album_id
@@ -92,6 +93,7 @@ def parse_cfg_file():
     the configuration file. If errors occur (e.g. there is no configuration file, file I/O errors,
     a configuration value is not specified...) then default values are used.
     """
+
     with open(CONFIG_FILE_NAME, 'r') as cfg_file:
         lines = cfg_file.read()
         size_match = re.search("size:(?: )*?([0-9]+)", lines)
