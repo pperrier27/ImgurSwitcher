@@ -1,20 +1,37 @@
 # ImgurSwitcher
-Python 3.5 script designed to run in the background and read keyboard events to change your background picture from an Imgur album.
 
-Currently Windows only :(
+Python 3.4 script designed to run in the background and read assorted key combinations to change your background picture from an Imgur album.
+Currently Windows-only, but Mac/Linux support is in the works!
 
-# Requirements
-Need pyHook for Python 3(.5), available as an unofficial .whl file [here.](http://www.lfd.uci.edu/~gohlke/pythonlibs/) Make sure this file matches your setup of Python (version/32 or 64 bit).
-Download it somewhere on your computer and then run `pip install <path to file you just downloaded>`.
-Alternatively, [download the source](http://sourceforge.net/projects/pyhook/) and fix it up a bit to work with Python 3 (I have not done it using this method, but it should work).
+## How To Install ##
+#### Windows ####
+On Windows 64-bit (not Itanium) machines, simply [download the zip file](./windows/dist) in `windows/dist` and unzip to somewhere on your computer. Then, launch imgurswitcher.exe and you're done! See the [usage instructions](#how-to-use) for the key combinations.
 
-Need PythonCOM, available from [here](http://sourceforge.net/projects/pywin32/). Download the `.exe` that matches your Python setup (version/32 or 64 bit) and run it to install. There does not seem to be a `pip` package available for Python 3.5 yet (as of 2015-11-03), so this is what's needed to install (note: same site as above has it).
+If you don't want to launch the ImgurSwitcher executable every time you log in, you should add the ImgurSwitcher executable to the list of startup tasks. Google has good info on how to do this, but here's [a link](http://superuser.com/a/797635) to some instructions.
 
-Need tkinter
+On machines other than this, you will have to build from source (for now). See the [Windows development info](./info/windows_dev.md) for instructions.
 
-# Install and Setup
-TODO
+## How To Use ##
+Here are the key combinations:
 
-# Usage
-TODO
+* ALT + D: Set background to the next image in the album (wraps around)
+* ALT + A: Set background to the previous image in the album (wraps around)
+* ALT + R: Set background to a random image in the album
+* ALT + S: Save the current background image to a location of your choice
+* ALT + U: Set the URL to the Imgur album you want to use as the image source
+* ALT + Q: Quit ImgurSwitcher
 
+## Support ##
+Tested on my Windows 10 64-bit machine (i.e. the only one I have access to right now :) ). 
+
+If you find a bug, please submit it to the Issues page on this repository.
+
+## ToDo List ##
+The ToDo list is [here](./TODO.md)
+
+## Development Info ##
+#### Windows ####
+The Windows development info, including requirements and building instructions, is [here](./info/windows_dev.md).
+
+## Contributors ##
+[Me](https://github.com/pperrier27/)
