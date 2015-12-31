@@ -1,5 +1,4 @@
-Nicer logging?
+Better way to fix the filesystem search path if building exe with py2exe
 Image caching
-Current focus is desktop only
 More platforms supported
 Change event queue block/unblock to be able to use the with statement

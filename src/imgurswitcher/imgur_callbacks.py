@@ -98,7 +98,7 @@ def _download_image(url):
     url: the url to download the image from.
 
     Returns the path to the downloaded image, or None
-    if the downlaod was not successful.
+    if the download was not successful.
     """
     logger.info("Downloading image from URL: %s", url)
     try:

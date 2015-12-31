@@ -24,20 +24,32 @@ logging.basicConfig(filename=LOG_FILE_NAME, filemode='w')
 logger.setLevel(logging.DEBUG)
 
 # Define this utility function for submodules to point at the right place
+# If using py2exe to make an executable, then _ROOT will end up pointing to 
+# the wrong location. Setting _building_exe to True will fix this. If not building
+# an exe, then set it to False.
+# TODO: Find a better way to do this 
+_building_exe = False
 _ROOT = os.path.abspath(os.path.dirname(__file__))
+
+if _building_exe:
+    _ROOT = os.path.abspath(os.path.join(_ROOT, '../..'))
+    logger.info("Fixing _ROOT path to %s", _ROOT)
+
+logger.debug("_ROOT is %s", _ROOT)
 def get_data(path):
     return os.path.join(_ROOT, 'data', path)
 
-import imgurswitcher.event_queue
-import imgurswitcher.config # also ensures that the initialization is run
+# This order matters
+from . import event_queue
+from . import config # also ensures that the initialization is run
 
-# Initialize what needs initializing, specififcally in this order
+# Initialize what needs initializing, specifically in this order
 event_queue.init()
 config.set_platform_config()
 
 # Make available common parts from the package level
 # Worker depends on the event queue being initialized
-from imgurswitcher.worker import Worker
+from .worker import Worker
 
 # Set the main function to use based on the platform
 main = config.Main
