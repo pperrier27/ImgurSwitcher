@@ -3,4 +3,4 @@
 !default.jpg
 config.cfg
 **/__pycache__
-*.txt
+imgur_switcher_log.txt
