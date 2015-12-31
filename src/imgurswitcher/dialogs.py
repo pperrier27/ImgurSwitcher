@@ -24,7 +24,7 @@ import tkinter
 import tkinter.filedialog
 import tkinter.messagebox
 import tkinter.simpledialog
-import ImgurSwitcher.event_queue as eq # most/all of the dialogs need to block the event queue
+import imgurswitcher.event_queue as eq # most/all of the dialogs need to block the event queue
 
 def save_dialog_box(title = "Save File As...", defaultextension = "", 
                     initialdir=None, initialfile=None, filetypes=None):

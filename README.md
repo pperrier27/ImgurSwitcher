@@ -8,11 +8,9 @@ Need pyHook for Python 3(.5), available as an unofficial .whl file [here.](http:
 Download it somewhere on your computer and then run `pip install <path to file you just downloaded>`.
 Alternatively, [download the source](http://sourceforge.net/projects/pyhook/) and fix it up a bit to work with Python 3 (I have not done it using this method, but it should work).
 
-Need PythonCOM, available from [here](http://sourceforge.net/projects/pywin32/). Download the `.exe` that matches your Python setup (version/32 or 64 bit) and run it to install. There does not seem to be a `pip` package available for Python 3.5 yet (as of 2015-11-03), so this is what's needed to install.
+Need PythonCOM, available from [here](http://sourceforge.net/projects/pywin32/). Download the `.exe` that matches your Python setup (version/32 or 64 bit) and run it to install. There does not seem to be a `pip` package available for Python 3.5 yet (as of 2015-11-03), so this is what's needed to install (note: same site as above has it).
 
-Need the [official Python Imgur API](https://github.com/Imgur/imgurpython), which you can get by running
-
-`pip install imgurpython`
+Need tkinter
 
 # Install and Setup
 TODO

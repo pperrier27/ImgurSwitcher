@@ -17,8 +17,8 @@
 
 from threading import Thread
 import logging
-import ImgurSwitcher.config as cfg
-import ImgurSwitcher.event_queue as eq
+import imgurswitcher.config as cfg
+import imgurswitcher.event_queue as eq
 
 logger = logging.getLogger(__name__)
 

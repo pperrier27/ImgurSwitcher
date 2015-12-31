@@ -25,8 +25,8 @@ import logging
 import pyHook as hook
 import pythoncom as com
 from os import _exit # fugly but it works to exit
-import ImgurSwitcher.event_queue as eq
-import ImgurSwitcher.imgur_callbacks as callbacks
+import imgurswitcher.event_queue as eq
+import imgurswitcher.imgur_callbacks as callbacks
 
 logger = logging.getLogger(__name__)
 

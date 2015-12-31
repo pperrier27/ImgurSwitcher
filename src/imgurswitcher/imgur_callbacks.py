@@ -28,8 +28,8 @@ import random
 import shutil
 import logging
 import urllib.request, urllib.parse, urllib.error
-import ImgurSwitcher.config as cfg
-import ImgurSwitcher.dialogs as dialogs
+import imgurswitcher.config as cfg
+import imgurswitcher.dialogs as dialogs
 
 logger = logging.getLogger(__name__)
 

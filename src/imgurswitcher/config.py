@@ -24,9 +24,9 @@ whenever they need to do something platform-specific.
 import re
 import platform
 import logging
-import ImgurSwitcher.event_queue as eq
-import ImgurSwitcher.exceptions as xcpt
-import ImgurSwitcher.dialogs as dialogs
+import imgurswitcher.event_queue as eq
+import imgurswitcher.exceptions as xcpt
+import imgurswitcher.dialogs as dialogs
 
 logger = logging.getLogger(__name__)
 
@@ -193,7 +193,7 @@ def set_platform_config():
 
     if _platform == "Windows":
         logger.info("Current platform is Windows")
-        import ImgurSwitcher.windows as current_platform
+        import imgurswitcher.windows as current_platform
     # Add other supported platform configurations here.
     
     Main = current_platform.main

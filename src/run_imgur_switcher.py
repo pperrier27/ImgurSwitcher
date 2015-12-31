@@ -15,7 +15,7 @@
 
 """Runs ImgurSwitcher."""
 
-from ImgurSwitcher import main, Worker
+from imgurswitcher import main, Worker
 
 # Common parts
 workThread = Worker()

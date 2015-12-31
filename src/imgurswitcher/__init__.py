@@ -22,8 +22,8 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(filename=LOG_FILE_NAME, filemode='w')
 logger.setLevel(logging.INFO)
 
-import ImgurSwitcher.event_queue
-import ImgurSwitcher.config # also ensures that the initialization is run
+import imgurswitcher.event_queue
+import imgurswitcher.config # also ensures that the initialization is run
 
 # Initialize what needs initializing, specififcally in this order
 event_queue.init()
@@ -31,9 +31,9 @@ config.set_platform_config()
 
 # Make available common parts from the package level
 # Worker depends on the event queue being initialized
-from ImgurSwitcher.worker import Worker
+from imgurswitcher.worker import Worker
 
 # Set the main function to use based on the platform
 main = config.Main
 
-__all__ = [] # don't want to support using "from ImgurSwitcher import *""
+__all__ = [] # don't want to support using "from imgurswitcher import *""
