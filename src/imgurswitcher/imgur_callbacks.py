@@ -28,8 +28,9 @@ import random
 import shutil
 import logging
 import urllib.request, urllib.parse, urllib.error
-import imgurswitcher.config as cfg
-import imgurswitcher.dialogs as dialogs
+from . import config as cfg
+from . import dialogs as dialogs
+from . import get_data
 
 logger = logging.getLogger(__name__)
 
@@ -91,14 +92,31 @@ def _initialize_images():
         dialogs.error_dialog_box("The provided URL is not a valid Imgur URL!\n\nImgurSwitcher will shut down.")
         raise cfg.ImgurSwitcherException("The provided URL is not a valid Imgur URL!")
 
+def _download_image(url):
+    """Helper that downloads images.
+
+    url: the url to download the image from.
+
+    Returns the path to the downloaded image, or None
+    if the downlaod was not successful.
+    """
+    logger.info("Downloading image from URL: %s", url)
+    try:
+        path_to_image, junk2 = urllib.request.urlretrieve(url, ImgurCallbacks._img_path) # clobbers the old image
+        return os.path.abspath(path_to_image) # We know where the images will be already, more of a sentinel "this worked"
+    except Exception as e:
+        logger.error("Download from URL: %s failed! Reason: %s", url, e)    
+        dialogs.error_dialog_box(title="Download Error" , message="Image download failed!")    
+        return None
+
 class ImgurCallbacks:
     """Holds the callbacks and information they require."""
 
     _image_ids = _initialize_images()
     imgur_stub = r"http://i.imgur.com/"
     # Windows needs absolute paths or it fails to set background properly (gives a black screen)
-    _img_path = os.path.abspath("ImgurSwitcher/images/background.jpg")
-    _DEFAULT_IMAGE = os.path.abspath("ImgurSwitcher/images/default.jpg")
+    _img_path = get_data("background.jpg")
+    _DEFAULT_IMAGE = get_data("default.jpg")
 
     @staticmethod
     def next_image():
@@ -113,36 +131,28 @@ class ImgurCallbacks:
         # Alternatively, future development could read the magic bytes of the image and figure out
         # what image type it was.
         image_url = ImgurCallbacks.imgur_stub + ImgurCallbacks._image_ids[index] + ".jpg" 
-        logger.info("Downloading image from URL: %s", image_url)
-        try:
-            # We don't need to store these values, we know where the images will be saved
-            junk1, junk2 = urllib.request.urlretrieve(image_url, ImgurCallbacks._img_path) # clobbers the old image
+        result = _download_image(image_url)
+        
+        if result is not None:
+            if cfg.set_as_background(ImgurCallbacks._img_path):
+                logger.debug("Successfully set background")
+                cfg.album_pos = index + 1
+                logger.debug("New index is %i", cfg.album_pos)
             
-        except Exception as e:
-            # Just report it and leave it alone...
-            logger.error("Download from URL: %s failed!", image_url)    
-            dialogs.error_dialog_box(title="Download Error" , message="Image download failed!")
-            return
-        
-        if cfg.set_as_background(ImgurCallbacks._img_path):
-            logger.debug("Successfully set background")
-            cfg.album_pos = index + 1
-            logger.debug("New index is %i", cfg.album_pos)
-        
-        else:
-            logger.warning("Setting background failed, trying the default image...")
-            # Delete current image file and try the default
-            try:
-                os.remove(ImgurCallbacks._img_path)
-            except Exception as e:
-                # Doesn't matter, just don't kill the program
-                pass 
-            if cfg.set_as_background(ImgurCallbacks._DEFAULT_IMAGE):
-                logger.warning("Successfully set default background")
             else:
-                logger.critical("Something went terribly wrong...")
-                dialogs.error_dialog_box(title="Critical Failure" , message="Something went terribly wrong...")
-        
+                logger.warning("Setting background failed, trying the default image...")
+                # Delete current image file and try the default
+                try:
+                    os.remove(ImgurCallbacks._img_path)
+                except Exception as e:
+                    # Doesn't matter, just don't kill the program
+                    pass 
+                if cfg.set_as_background(ImgurCallbacks._DEFAULT_IMAGE):
+                    logger.warning("Successfully set default background")
+                else:
+                    logger.critical("Something went terribly wrong...")
+                    dialogs.error_dialog_box(title="Critical Failure" , message="Something went terribly wrong...")
+            
     @staticmethod
     def prev_image():
         """Callback to use to fetch the previous image in the album and set it as the background."""
@@ -164,36 +174,27 @@ class ImgurCallbacks:
         # Alternatively, future development could read the magic bytes of the image and figure out
         # what image type it was.
         image_url = ImgurCallbacks.imgur_stub + ImgurCallbacks._image_ids[index] + ".jpg" 
-        logger.info("Downloading image from URL: %s", image_url)
+        result = _download_image(image_url)
         
-        try:
-            # We don't need to store these values, we know where the images will be saved
-            junk1, junk2 = urllib.request.urlretrieve(image_url, ImgurCallbacks._img_path) # clobbers the old image
-            
-        except Exception as e:
-            # Report it and leave it alone 
-            logger.error("Download from URL: %s failed!", image_url)              
-            dialogs.error_dialog_box(title="Download Error" , message="Image download failed!")
-            return
-        
-        if cfg.set_as_background(ImgurCallbacks._img_path):
-            logger.debug("Successfully set background")
-            cfg.album_pos = (index % len(ImgurCallbacks._image_ids)) + 1 # yay for the python modulus behaviour!
-            logger.debug("New index is %i", cfg.album_pos)
-        else:
-            logger.warning("Setting background failed, trying the default image...")
-            # Delete current image file and try the default
-            try:
-                os.remove(ImgurCallbacks._img_path)
-            except Exception as e:
-                # Doesn't matter, just don't kill the program
-                pass 
-
-            if cfg.set_as_background(ImgurCallbacks._DEFAULT_IMAGE):
-                logger.warning("Successfully set default background")
+        if result is not None:
+            if cfg.set_as_background(ImgurCallbacks._img_path):
+                logger.debug("Successfully set background")
+                cfg.album_pos = (index % len(ImgurCallbacks._image_ids)) + 1 # yay for the python modulus behaviour!
+                logger.debug("New index is %i", cfg.album_pos)
             else:
-                logger.critical("Something went terribly wrong...")
-                dialogs.error_dialog_box(title="Critical Failure" , message="Something went terribly wrong...")
+                logger.warning("Setting background failed, trying the default image...")
+                # Delete current image file and try the default
+                try:
+                    os.remove(ImgurCallbacks._img_path)
+                except Exception as e:
+                    # Doesn't matter, just don't kill the program
+                    pass 
+
+                if cfg.set_as_background(ImgurCallbacks._DEFAULT_IMAGE):
+                    logger.warning("Successfully set default background")
+                else:
+                    logger.critical("Something went terribly wrong...")
+                    dialogs.error_dialog_box(title="Critical Failure" , message="Something went terribly wrong...")
 
     @staticmethod
     def random_image():
@@ -208,36 +209,27 @@ class ImgurCallbacks:
         # Alternatively, future development could read the magic bytes of the image and figure out
         # what image type it was.
         image_url = ImgurCallbacks.imgur_stub + ImgurCallbacks._image_ids[index] + ".jpg" 
-        logger.info("Downloading image from URL: %s", image_url)
-
-        try:
-            # We don't need to store these values, we know where the images will be saved
-            junk1, junk2 = urllib.request.urlretrieve(image_url, ImgurCallbacks._img_path) # clobbers the old image
-            
-        except Exception as e:
-            # Report it and leave it alone
-            logger.error("Download from URL: %s failed!", image_url)                         
-            dialogs.error_dialog_box(title="Download Error" , message="Image download failed!")
-            return
+        result = _download_image(image_url)
         
-        if cfg.set_as_background(ImgurCallbacks._img_path):
-            logger.debug("Successfully set background")
-            cfg.album_pos = index + 1
-            logger.debug("New index is %i", cfg.album_pos)
-        else:
-            logger.warning("Setting background failed, trying the default image...")
-            # Delete current image file and try the default
-            try:
-                os.remove(ImgurCallbacks._img_path)
-            except Exception as e:
-                # Doesn't matter, just don't kill the program
-                pass 
-
-            if cfg.set_as_background(ImgurCallbacks._DEFAULT_IMAGE):
-                logger.warning("Successfully set default background")
+        if result is not None:
+            if cfg.set_as_background(ImgurCallbacks._img_path):
+                logger.debug("Successfully set background")
+                cfg.album_pos = index + 1
+                logger.debug("New index is %i", cfg.album_pos)
             else:
-                logger.critical("Something went terribly wrong...")
-                dialogs.error_dialog_box(title="Critical Failure" , message="Something went terribly wrong...")
+                logger.warning("Setting background failed, trying the default image...")
+                # Delete current image file and try the default
+                try:
+                    os.remove(ImgurCallbacks._img_path)
+                except Exception as e:
+                    # Doesn't matter, just don't kill the program
+                    pass 
+
+                if cfg.set_as_background(ImgurCallbacks._DEFAULT_IMAGE):
+                    logger.warning("Successfully set default background")
+                else:
+                    logger.critical("Something went terribly wrong...")
+                    dialogs.error_dialog_box(title="Critical Failure" , message="Something went terribly wrong...")
 
     @staticmethod
     def save_image():

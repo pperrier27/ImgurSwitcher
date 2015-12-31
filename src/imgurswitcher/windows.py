@@ -20,15 +20,17 @@ an image as the desktop background, showing dialog boxes (e.g. to select where t
 save images or to warn the user), and hooking into keyboard presses.
 """
 
-import ctypes
 import logging
+logger = logging.getLogger(__name__)
+
+import ctypes
+from os import _exit # fugly but it works to exit
 import pyHook as hook
 import pythoncom as com
-from os import _exit # fugly but it works to exit
-import imgurswitcher.event_queue as eq
-import imgurswitcher.imgur_callbacks as callbacks
+from . import event_queue as eq
+from . import imgur_callbacks as callbacks
 
-logger = logging.getLogger(__name__)
+logger.debug("Successful import of all modules in Windows-specific module")
 
 def set_as_background(url):
     logger.debug("Attempting to set Windows background...")

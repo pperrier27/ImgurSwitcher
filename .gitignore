@@ -1,6 +1,6 @@
 # Ignore all .jpg files but the default image
 *.jpg
 !default.jpg
-config.cfg
+# config.cfg
 **/__pycache__
 imgur_switcher_log.txt

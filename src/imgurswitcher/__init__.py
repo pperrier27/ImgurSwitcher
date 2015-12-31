@@ -17,10 +17,16 @@
 LOG_FILE_NAME = "imgur_switcher_log.txt"
 
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(filename=LOG_FILE_NAME, filemode='w')
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
+
+# Define this utility function for submodules to point at the right place
+_ROOT = os.path.abspath(os.path.dirname(__file__))
+def get_data(path):
+    return os.path.join(_ROOT, 'data', path)
 
 import imgurswitcher.event_queue
 import imgurswitcher.config # also ensures that the initialization is run
@@ -35,5 +41,6 @@ from imgurswitcher.worker import Worker
 
 # Set the main function to use based on the platform
 main = config.Main
+
 
 __all__ = [] # don't want to support using "from imgurswitcher import *""

@@ -25,14 +25,18 @@ import os
 import re
 import platform
 import logging
-import imgurswitcher.event_queue as eq
-import imgurswitcher.exceptions as xcpt
-import imgurswitcher.dialogs as dialogs
+from . import event_queue as eq
+from . import exceptions as xcpt
+from . import dialogs as dialogs
+from . import get_data
 
 logger = logging.getLogger(__name__)
 
-# Name of the config file. Expected to be in the same directory as this module
-CONFIG_FILE_NAME = os.path.abspath("imgurswitcher/config.cfg")
+# Config file variables. 
+# The config file is expected to be in the data directory at the 
+# package root
+CONFIG_FILE_NAME = "config.cfg"
+config_file_path = get_data(CONFIG_FILE_NAME)
 
 imgur_album_url = "http://imgur.com/gallery/wCBYO" # default album
 album_id = "wCBYO" # default album_id
@@ -93,59 +97,76 @@ def parse_cfg_file():
     the configuration file. If errors occur (e.g. there is no configuration file, file I/O errors,
     a configuration value is not specified...) then default values are used.
     """
+    global config_file_path
+    # Check if the config file exists.
+    exists = os.path.isfile(config_file_path)
 
-    with open(CONFIG_FILE_NAME, 'r') as cfg_file:
-        lines = cfg_file.read()
-        size_match = re.search("size:(?: )*?([0-9]+)", lines)
-        timeout_match = re.search("timeout:(?: )*?([0-9]+)", lines)
-        url_match = re.search("url:(?: )*?([a-zA-Z0-9:/\.]+)", lines)
-        album_pos_match = re.search("position:(?: )*?([0-9]+)", lines)
+    # If it doesn't exist there, it might exist in the current directory
+    # (this is the case with the Windows executable). If this is true we need to change 
+    # the path.
+    if not exists:
+        logger.warning("Config file does not exist at %s. Checking current directory...", config_file_path)
+        exists = os.path.isfile(CONFIG_FILE_NAME)
+        if exists:
+            # Change the path
+            config_file_path = os.path.abspath(CONFIG_FILE_NAME)
+            logger.info("Config file found in current directory. Set config file path to %s" % config_file_path)
 
-        # Work with the global config vars
-        global album_pos
-        global imgur_album_url
+    if exists:
+        with open(config_file_path, 'r') as cfg_file:
+            lines = cfg_file.read()
+            size_match = re.search("size:(?: )*?([0-9]+)", lines)
+            timeout_match = re.search("timeout:(?: )*?([0-9]+)", lines)
+            url_match = re.search("url:(?: )*?([a-zA-Z0-9:/\.]+)", lines)
+            album_pos_match = re.search("position:(?: )*?([0-9]+)", lines)
 
-        # Set the values; if anything fails then defaults will be used.
-        if size_match:
-            eq.set_max_queue_size(int(size_match.group(1)))
-            logger.info("Setting max queue size to %i from config file", eq.max_queue_size)
-        else:
-            logger.warning("Could not get queue size from config file; using default value of %i", eq.max_queue_size)
-        
-        if timeout_match:
-            eq.set_queue_timeout(int(timeout_match.group(1)))
-            logger.info("Setting queue operation timeout value to %i from config file", eq.queue_op_timeout)
-        else:
-            logger.warning("Could not get queue operation timeout value from config file; using default value of %i", eq.queue_op_timeout)
+            # Work with the global config vars
+            global album_pos
+            global imgur_album_url
 
-        if album_pos_match:
-            album_pos = int(album_pos_match.group(1))
-            logger.info("Setting album position to %i from config file", album_pos)
-            if album_pos < 0:
-                logger.info("Correcting album position to %i since config value file was negative", 0)
-                album_pos = 0
-                # The case where album_pos is larger than the number of images in the album is handled in the callbacks.
-        else:
-            logger.warning("Could not get album position from config file; using default value of %i", album_pos)
+            # Set the values; if anything fails then defaults will be used.
+            if size_match:
+                eq.set_max_queue_size(int(size_match.group(1)))
+                logger.info("Setting max queue size to %i from config file", eq.max_queue_size)
+            else:
+                logger.warning("Could not get queue size from config file; using default value of %i", eq.max_queue_size)
+            
+            if timeout_match:
+                eq.set_queue_timeout(int(timeout_match.group(1)))
+                logger.info("Setting queue operation timeout value to %i from config file", eq.queue_op_timeout)
+            else:
+                logger.warning("Could not get queue operation timeout value from config file; using default value of %i", eq.queue_op_timeout)
 
-        url_valid = False
-        if url_match:
-            if verify_url(url_match.group(1)):
-                imgur_album_url = url_match.group(1)
-                url_valid = True
-                logger.info("Setting Imgur album URL to %s from config file", imgur_album_url)
-        else:
-            logger.warning("Could not get imgur album URL from config file; trying default value of %i", imgur_album_url)
+            if album_pos_match:
+                album_pos = int(album_pos_match.group(1))
+                logger.info("Setting album position to %i from config file", album_pos)
+                if album_pos < 0:
+                    logger.info("Correcting album position to %i since config value file was negative", 0)
+                    album_pos = 0
+                    # The case where album_pos is larger than the number of images in the album is handled in the callbacks.
+            else:
+                logger.warning("Could not get album position from config file; using default value of %i", album_pos)
 
-        # This checks the default URL if no match was found in the config file,
-        # and also is needed so that the album_key variable is set properly in case of having 
-        # to use the default.
-        if not url_valid and not verify_url(imgur_album_url):
-            # If this is hit, then someone messed with the default value of imgur_album_url and broke it. Go fix it.
-            logger.critical("Default Imgur album URL is not valid! URL: %s Aborting...", imgur_album_url)
-            dialogs.error_dialog_box("URL Not Valid", "Default Imgur album URL is not valid! URL: " + imgur_album_url + "\n\nAborting program...")
-            raise ImgurSwitcherException("You changed the default value of imgur_album_url in config.py and broke the program,"
-                " because it is no longer a valid Imgur URL. Go fix it!")
+            url_valid = False
+            if url_match:
+                if verify_url(url_match.group(1)):
+                    imgur_album_url = url_match.group(1)
+                    url_valid = True
+                    logger.info("Setting Imgur album URL to %s from config file", imgur_album_url)
+            else:
+                logger.warning("Could not get imgur album URL from config file; trying default value of %i", imgur_album_url)
+
+            # This checks the default URL if no match was found in the config file,
+            # and also is needed so that the album_key variable is set properly in case of having 
+            # to use the default.
+            if not url_valid and not verify_url(imgur_album_url):
+                # If this is hit, then someone messed with the default value of imgur_album_url and broke it. Go fix it.
+                logger.critical("Default Imgur album URL is not valid! URL: %s Aborting...", imgur_album_url)
+                dialogs.error_dialog_box("URL Not Valid", "Default Imgur album URL is not valid! URL: " + imgur_album_url + "\n\nAborting program...")
+                raise ImgurSwitcherException("You changed the default value of imgur_album_url in config.py and broke the program,"
+                    " because it is no longer a valid Imgur URL. Go fix it!")
+    else:
+        logger.warning("No config file found, using default values...")
 
 def write_config_to_file():
     """Writes album_pos and imgur_album_url to the config file.
@@ -154,32 +175,63 @@ def write_config_to_file():
     the values of imgur_album_url and/or album_pos to force the changes to take hold.
     """
 
-    with open(CONFIG_FILE_NAME, "r+") as cfg_file:
-        lines = cfg_file.read()
-        
-        # delete the first previous occurrence of the position line and the url line, then clear the text from the
-        # file and write in the new text
+    global config_file_path
+    # Check to see if the config file exists.
+    # The correct path to it should have been set by parse_cfg_file before this.
+    if os.path.isfile(config_file_path):
+        with open(config_file_path, "r+") as cfg_file:
+            lines = cfg_file.read()
+            
+            # delete the first previous occurrence of the position line and the url line, then clear the text from the
+            # file and write in the new text
 
-        result = re.subn("url:(?: )*?(.*)", "url: " + imgur_album_url, lines, 1) # at most one replacement
-        if result[1] == 1:
-            lines = result[0]
+            result = re.subn("url:(?: )*?(.*)", "url: " + imgur_album_url, lines, 1) # at most one replacement
+            if result[1] == 1:
+                lines = result[0]
 
-        else:
-            lines = "url: " + imgur_album_url + "\n" + lines
+            else:
+                lines = "url: " + imgur_album_url + "\n" + lines
 
-        result = re.subn("position:(?: )*?(.*)", "position: " + str(album_pos), lines, 1) # at most one replacement
-        if result[1] == 1:
-            lines = result[0]
+            result = re.subn("position:(?: )*?(.*)", "position: " + str(album_pos), lines, 1) # at most one replacement
+            if result[1] == 1:
+                lines = result[0]
 
-        else:
-            lines += "\nposition: " + str(album_pos)
+            else:
+                lines += "\nposition: " + str(album_pos)
 
-        # Clear text from the file and reset the stream pointer to the beginning of the file
-        cfg_file.seek(0)
-        cfg_file.truncate()
-        cfg_file.write(lines)
+            # Clear text from the file and reset the stream pointer to the beginning of the file
+            cfg_file.seek(0)
+            cfg_file.truncate()
+            cfg_file.write(lines)
 
-        logger.info("Wrote configuration info to file. URL: %s, album position: %i", imgur_album_url, album_pos)
+            logger.info("Wrote configuration info to file. URL: %s, album position: %i", imgur_album_url, album_pos)
+    else:
+        # Config file does NOT exist, so create one.
+        file_handle = None
+        logger.warning("Config file does not exist at %s. Attempting to create one there...", config_file_path)
+        try:
+            # First try the current config path, which is the one that references
+            # the imgurswitcher directory if we managed to get here
+            file_handle = open(config_file_path, 'w')
+        except Exception:
+            # TODO: Refine this error handling
+            logger.warning("Unable to create config file at %s. Attempting to create one in current directory...", config_file_path)
+            try:
+                file_handle = open(os.path.abspath(CONFIG_FILE_NAME), 'w')
+            except Exception:
+                # TODO: refine this error handling
+                logger.error("Unable to create config file.")
+                return
+
+        # file_handle is good if we make it here
+        # Write config info to the new config file
+        file_handle.writeline("url: %s" % imgur_album_url)
+        file_handle.writeline("position: %i" % album_pos)
+        file_handle.writeline("size: %i" % eq.max_queue_size)
+        file_handle.writeline("timeout: %i" % eq.queue_op_timeout)
+        file_handle.close()
+        logger.warning("Created new config file at %s", file_handle.name)
+
 
 def set_platform_config():
     """Function that sets up the (platform-dependent) configuration/variables that the other modules in this package rely on.
@@ -196,6 +248,7 @@ def set_platform_config():
     if _platform == "Windows":
         logger.info("Current platform is Windows")
         import imgurswitcher.windows as current_platform
+        logger.debug("Successfully imported Windows-specific module")
     # Add other supported platform configurations here.
     
     Main = current_platform.main
