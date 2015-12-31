@@ -62,4 +62,19 @@ def init():
     event_queue = queue.PriorityQueue(max_queue_size)
     logger.info("Event queue initialized with size %i", max_queue_size)
 
+# Need this because the priority queue sometimes
+# throws exceptions when we try and compare two tuples
+# that have the same first value (because it then tries to compare
+# two functions and fails). Use this as a decorator class to fix this
+# problem.
+class TupleSortingOn0(tuple):
+    def __lt__(self, rhs):
+        return self[0] < rhs[0]
+    def __gt__(self, rhs):
+        return self[0] > rhs[0]
+    def __le__(self, rhs):
+        return self[0] <= rhs[0]
+    def __ge__(self, rhs):
+        return self[0] >= rhs[0]
+
 event_queue = None
