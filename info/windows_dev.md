@@ -26,7 +26,7 @@ For this you will need the [pyHook source](http://sourceforge.net/projects/pyhoo
 3. Navigate to the root of the pyHook source directory and run `python setup.py build_ext --swig=<path to swig.exe>`, followed by `pip install --upgrade .`
 
 ## Building Executables
-If you want to build a new executable, then set the variable `_building_exe` in `__init__.py` to True (this fixes a path problem with where the data files are). Then, navigate to the `src` directory and run `python py2exe_setup.py py2exe`. This will put all the required files in the `windows/dist` directory of this project.
+If you want to build a new executable, then navigate to the `src` directory and run `python py2exe_setup.py py2exe`. This will put all the required files in the `windows/dist` directory of this project. Then, delete the appropriate `.zip` file for your platform and recreate it with the same name and the new contents of the folder. Alternatively, if you have Powershell v5.0 (Windows 10 has it), you can switch to the `windows` directory and run `powershell ./build_exe.ps1` which will do this process for you (edit that script's `$zipfile` variable to change the output name of the `.zip` file) 
 
 ### Note For `virtualenv` Users ###
 

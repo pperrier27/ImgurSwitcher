@@ -5,4 +5,4 @@ config.cfg
 **/__pycache__
 imgur_switcher_log.txt
 windows/dist/*
-!windows/dist/ImgurSwitcher.zip
+!windows/dist/ImgurSwitcher*.zip

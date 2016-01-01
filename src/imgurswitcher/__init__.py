@@ -23,21 +23,22 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(filename=LOG_FILE_NAME, filemode='w')
 logger.setLevel(logging.DEBUG)
 
+###########################################################################
 # Define this utility function for submodules to point at the right place
 # If using py2exe to make an executable, then _ROOT will end up pointing to 
-# the wrong location. Setting _building_exe to True will fix this. If not building
-# an exe, then set it to False.
-# TODO: Find a better way to do this 
-_building_exe = False
+# the wrong location. This code is a workaround to fix that, with thanks to
+# varnivey from https://github.com/scikit-image/scikit-image/issues/1157
 _ROOT = os.path.abspath(os.path.dirname(__file__))
-
-if _building_exe:
-    _ROOT = os.path.abspath(os.path.join(_ROOT, '../..'))
-    logger.info("Fixing _ROOT path to %s", _ROOT)
+_pkg_dir, _last_dir = os.path.split(_ROOT)
+if os.path.isfile(_pkg_dir):
+    logger.debug("Fixing _ROOT path due to py2exe bug...")
+    _ROOT = os.path.split(_pkg_dir)[0]
 
 logger.debug("_ROOT is %s", _ROOT)
 def get_data(path):
     return os.path.join(_ROOT, 'data', path)
+
+############################################################################
 
 # This order matters
 from . import event_queue
