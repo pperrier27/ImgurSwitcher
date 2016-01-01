@@ -10,5 +10,5 @@ python py2exe_setup.py py2exe
 
 # Create a zip file
 cd ..\windows\dist
-Compress-Archive -Path . -DestinationPath $zipname
+Compress-Archive -Path .\* -DestinationPath $zipname
 cd ..
