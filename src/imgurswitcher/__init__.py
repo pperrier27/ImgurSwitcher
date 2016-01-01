@@ -21,7 +21,7 @@ import os
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(filename=LOG_FILE_NAME, filemode='w')
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 ###########################################################################
 # Define this utility function for submodules to point at the right place
