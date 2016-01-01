@@ -14,12 +14,12 @@ On machines other than this, you will have to build from source (for now). See t
 ## How To Use ##
 Here are the key combinations:
 
-* ALT + D: Set background to the next image in the album (wraps around)
-* ALT + A: Set background to the previous image in the album (wraps around)
-* ALT + R: Set background to a random image in the album
-* ALT + S: Save the current background image to a location of your choice
-* ALT + U: Set the URL to the Imgur album you want to use as the image source
-* ALT + Q: Quit ImgurSwitcher
+* ALT+D: Set background to the next image in the album (wraps around)
+* ALT+A: Set background to the previous image in the album (wraps around)
+* ALT+R: Set background to a random image in the album
+* ALT+S: Save the current background image to a location of your choice
+* ALT+U: Set the URL to the Imgur album you want to use as the image source
+* ALT+Q: Quit ImgurSwitcher
 
 ## Support ##
 Tested on my Windows 10 64-bit machine (i.e. the only one I have access to right now :) ). 
@@ -27,7 +27,7 @@ Tested on my Windows 10 64-bit machine (i.e. the only one I have access to right
 If you find a bug, please submit it to the Issues page on this repository.
 
 ## ToDo List ##
-The ToDo list is [here](./TODO.md)
+The ToDo list is [here](./TODO.md).
 
 ## Development Info ##
 #### Windows ####
