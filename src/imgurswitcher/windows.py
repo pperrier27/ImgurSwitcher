@@ -56,25 +56,33 @@ def on_keyboard_event(event):
     """
     if(event.IsAlt() and not eq.is_blocked()):
         keyPressed = event.GetKey()
+        block = True # True lets the event through
         if(keyPressed == "D"):
             eq.event_queue.put(eq.TupleSortingOn0((eq.LOW_PRIORITY, callbacks.ImgurCallbacks.next_image)), False, eq.queue_op_timeout)
             logger.debug("Loaded callback: " + callbacks.ImgurCallbacks.next_image.__name__ + " into event queue")
+            block = False
         elif(keyPressed == "A"):
             eq.event_queue.put(eq.TupleSortingOn0((eq.LOW_PRIORITY, callbacks.ImgurCallbacks.prev_image)), False, eq.queue_op_timeout)
             logger.debug("Loaded callback: " + callbacks.ImgurCallbacks.prev_image.__name__ + " into event queue")
+            block = False
         elif(keyPressed == "R"):
             eq.event_queue.put(eq.TupleSortingOn0((eq.LOW_PRIORITY, callbacks.ImgurCallbacks.random_image)), False, eq.queue_op_timeout)
             logger.debug("Loaded callback: " + callbacks.ImgurCallbacks.random_image.__name__ + " into event queue")
+            block = False
         elif(keyPressed == "S"):
             eq.event_queue.put(eq.TupleSortingOn0((eq.HIGH_PRIORITY, callbacks.ImgurCallbacks.save_image)), False, eq.queue_op_timeout)
             logger.debug("Loaded callback: " + callbacks.ImgurCallbacks.save_image.__name__ + " into event queue")
+            block = False
         elif(keyPressed == "U"):
             eq.event_queue.put(eq.TupleSortingOn0((eq.HIGH_PRIORITY, callbacks.ImgurCallbacks.change_url)), False, eq.queue_op_timeout)
             logger.debug("Loaded callback: " + callbacks.ImgurCallbacks.change_url.__name__ + " into event queue")
+            block = False
         elif(keyPressed == "Q"):
             eq.event_queue.put(eq.TupleSortingOn0((eq.HIGH_PRIORITY, callbacks.ImgurCallbacks.quit_program)), False, eq.queue_op_timeout) # None is reserved for quitting
             logger.debug("Loaded quit command into event queue")
-        return False
+            block = False
+        
+        return block
 
     return True
 
