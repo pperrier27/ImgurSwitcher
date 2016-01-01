@@ -9,7 +9,7 @@ On Windows 64-bit (not Itanium) machines, simply [download the zip file](./windo
 
 If you don't want to launch the ImgurSwitcher executable every time you log in, you should add the ImgurSwitcher executable to the list of startup tasks. Google has good info on how to do this, but here's [a link](http://superuser.com/a/797635) to some instructions.
 
-On machines other than this, you will have to build from source (for now). See the [Windows development info](./info/windows_dev.md) for instructions.
+On machines other than this (or if you have a Python 3.4 interpreter and want to use that to run ImgurSwitcher), you will have to build from source (for now). See the [Windows development info](./info/windows_dev.md) for instructions.
 
 ## How To Use ##
 Here are the key combinations:
