@@ -38,8 +38,8 @@ logger = logging.getLogger(__name__)
 CONFIG_FILE_NAME = "config.cfg"
 config_file_path = get_data(CONFIG_FILE_NAME)
 
-imgur_album_url = "http://imgur.com/gallery/wCBYO" # default album
-album_id = "wCBYO" # default album_id
+imgur_album_url = "http://imgur.com/gallery/abaz1" # default album
+album_id = "abaz1" # default album_id
 album_pos = 0 # default position in album (1-indexed). This is the image we are currently on. 
               # 0 means no image (i.e. it's kind of like None)
 
