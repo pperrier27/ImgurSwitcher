@@ -3,6 +3,8 @@
 Python 3.4 script designed to run in the background and read assorted key combinations to change your background picture from an Imgur album.
 Currently Windows-only, but Mac/Linux support is in the works!
 
+[Here's a list of albums with wallpaper dumps](http://imgur.com/gallery/GV71l) for inspiration/the lazy.
+
 ## How To Install ##
 #### Windows ####
 On Windows 64-bit (not Itanium) machines, simply [download the zip file](./windows/dist) in `windows/dist` and unzip to somewhere on your computer. Then, launch imgurswitcher.exe and you're done! See the [usage instructions](#how-to-use) for the key combinations.
