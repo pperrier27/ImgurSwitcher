@@ -24,13 +24,18 @@ import logging
 logger = logging.getLogger(__name__)
 
 import ctypes
-from os import _exit # fugly but it works to exit
 import pyHook as hook
 import pythoncom as com
+import win32api
+import win32con
 from . import event_queue as eq
 from . import imgur_callbacks as callbacks
 
 logger.debug("Successful import of all modules in Windows-specific module")
+
+# Hold the main thread ID to allow for nice quitting
+_main_thread_id = win32api.GetCurrentThreadId()
+logger.debug("Current main thread id is %i", _main_thread_id)
 
 def set_as_background(url):
     logger.debug("Attempting to set Windows background...")
@@ -40,7 +45,7 @@ def set_as_background(url):
 
 def exit_program():
     logger.info("Exiting program (Windows)...")
-    _exit(0)
+    win32api.PostThreadMessage(_main_thread_id, win32con.WM_QUIT, 0, 0)
 
 def on_keyboard_event(event):
     """ Callback that is called whenever a key on the keyboard is hit.
@@ -97,3 +102,6 @@ def main():
     hookManager.KeyDown = on_keyboard_event
     hookManager.HookKeyboard()
     com.PumpMessages()
+    logger.debug("Starting message pump...")
+    hookManager.UnhookKeyboard()
+    logger.debug("Message pumping ended, done Windows main")
