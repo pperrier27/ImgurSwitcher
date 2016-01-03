@@ -61,22 +61,24 @@ def on_keyboard_event(event):
     """
 
     callback_dict = {
-        "D": eq.TupleSortingOn0((eq.LOW_PRIORITY, callbacks.ImgurCallbacks.next_image)),
-        "A": eq.TupleSortingOn0((eq.LOW_PRIORITY, callbacks.ImgurCallbacks.prev_image)),
-        "R": eq.TupleSortingOn0((eq.LOW_PRIORITY, callbacks.ImgurCallbacks.random_image)),
-        "S": eq.TupleSortingOn0((eq.HIGH_PRIORITY, callbacks.ImgurCallbacks.save_image)),
-        "U": eq.TupleSortingOn0((eq.HIGH_PRIORITY, callbacks.ImgurCallbacks.change_url)),
-        "Q": eq.TupleSortingOn0((eq.HIGH_PRIORITY, callbacks.ImgurCallbacks.quit_program))
+        # Format: 
+        # Key: eq.TupleSortingOn0((priority in event queue, callback to call, block event queue until processed?))
+        "D": eq.TupleSortingOn0((eq.LOW_PRIORITY, callbacks.ImgurCallbacks.next_image, False)),
+        "A": eq.TupleSortingOn0((eq.LOW_PRIORITY, callbacks.ImgurCallbacks.prev_image, False)),
+        "R": eq.TupleSortingOn0((eq.LOW_PRIORITY, callbacks.ImgurCallbacks.random_image, False)),
+        "S": eq.TupleSortingOn0((eq.HIGH_PRIORITY, callbacks.ImgurCallbacks.save_image, True)),
+        "U": eq.TupleSortingOn0((eq.HIGH_PRIORITY, callbacks.ImgurCallbacks.change_url, True)),
+        "Q": eq.TupleSortingOn0((eq.HIGH_PRIORITY, callbacks.ImgurCallbacks.quit_program, True))
     }
 
-    if(event.IsAlt() and not eq.is_blocked()):
+    if(event.IsAlt()):
         keyPressed = event.GetKey()
         block = True # True lets the event through
         if keyPressed in callback_dict:
-            eq.event_queue.put(callback_dict[keyPressed], False, eq.queue_op_timeout)
+            eq.put(callback_dict[keyPressed])
             logger.debug("Loaded callback: " + callback_dict[keyPressed][1].__name__ + " into event queue")
             block = False
-        
+            
         return block
 
     return True

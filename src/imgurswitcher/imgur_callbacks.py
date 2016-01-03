@@ -279,9 +279,9 @@ class ImgurCallbacks:
         cfg.imgur_album_url = new_url
         cfg.album_pos = 0
 
-        # Immediately write new url and position to config file (so that in case of unexpected/unnatural shutdown,
-        # the changes will be saved)
+        # Write out the new config state because cfg.reset rereads the file
         cfg.write_config_to_file()
+        cfg.reset()
 
         # Reinitialize the image id's
         ImgurCallbacks._image_ids = _initialize_images()

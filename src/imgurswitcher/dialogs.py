@@ -17,14 +17,13 @@
 
 Uses tkinter to provide cross-platform dialog boxes. Rather than have one
 long-running tk instance, create and destroy them as needed since they're 
-not expected to be required that often/live for a long time.
+not expected to be r
 """
 
 import tkinter
 import tkinter.filedialog
 import tkinter.messagebox
 import tkinter.simpledialog
-from . import event_queue as eq # most/all of the dialogs need to block the event queue
 
 def save_dialog_box(title = "Save File As...", defaultextension = "", 
                     initialdir=None, initialfile=None, filetypes=None):
@@ -41,13 +40,12 @@ def save_dialog_box(title = "Save File As...", defaultextension = "",
     None if not.
     """
 
-    eq.block()
     root = tkinter.Tk()
     root.withdraw() # hide the main tk window
     filename = tkinter.filedialog.asksaveasfilename(title=title, defaultextension=defaultextension,
                                                     initialfile=initialfile, initialdir=initialdir)
     root.destroy()
-    eq.unblock() 
+    
     return filename
 
 def string_input_box(title="String Entry", prompt="Enter a string: ", initialvalue=""):
@@ -58,12 +56,12 @@ def string_input_box(title="String Entry", prompt="Enter a string: ", initialval
     initialvalue: The initial value of the string in the entry box.
     Returns the string that was input, or None if the window was exited.
     """
-    eq.block()
+    
     root = tkinter.Tk()
     root.withdraw() # hide the main tk window
     result = tkinter.simpledialog.askstring(title=title, prompt=prompt, initialvalue=initialvalue)
     root.destroy()
-    eq.unblock() 
+    
     return result
 
 def error_dialog_box(title="ImgurSwitcher", message="An error occurred."):
@@ -74,12 +72,12 @@ def error_dialog_box(title="ImgurSwitcher", message="An error occurred."):
 
     Returns nothing.
     """
-    eq.block()
+    
     root = tkinter.Tk()
     root.withdraw() # hide the main tk window
     result = tkinter.messagebox.showerror(title=title, message=message)
     root.destroy()
-    eq.unblock()
+    
 
 def warning_dialog_box(title="ImgurSwitcher", message="A warning occurred."):
     """Shows a warning dialog box.
@@ -89,12 +87,12 @@ def warning_dialog_box(title="ImgurSwitcher", message="A warning occurred."):
 
     Returns nothing.
     """
-    eq.block()
+    
     root = tkinter.Tk()
     root.withdraw() # hide the main tk window
     result = tkinter.messagebox.showwarning(title=title, message=message)
     root.destroy()
-    eq.unblock()
+    
 
 def confirm_dialog_box(title="ImgurSwitcher", message="Do you want to proceed?"):
     """Shows a confirm dialog box.
@@ -104,10 +102,10 @@ def confirm_dialog_box(title="ImgurSwitcher", message="Do you want to proceed?")
 
     Returns what the user selected (True or False for Ok or Cancel).
     """
-    eq.block()
+    
     root = tkinter.Tk()
     root.withdraw() # hide the main tk window
     result = tkinter.messagebox.askokcancel(title=title, message=message)
     root.destroy()
-    eq.unblock()
+    
     return result

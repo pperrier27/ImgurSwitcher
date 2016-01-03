@@ -126,8 +126,14 @@ def parse_cfg_file():
 
             # Set the values; if anything fails then defaults will be used.
             if size_match:
-                eq.set_max_queue_size(int(size_match.group(1)))
-                logger.info("Setting max queue size to %i from config file", eq.max_queue_size)
+                # Eh ugly but whatever :p
+                if int(size_match.group(1)) < 50:
+                    eq.set_max_queue_size(200)
+                    logger.info("Setting max queue size to 200 due to config value being too small")
+                else:
+                    eq.set_max_queue_size(int(size_match.group(1)))
+                    logger.info("Setting max queue size to %i from config file", eq.max_queue_size)
+    
             else:
                 logger.warning("Could not get queue size from config file; using default value of %i", eq.max_queue_size)
             
@@ -266,5 +272,16 @@ def _init():
     platform = _get_platform() # don't try/except this because we WANT to fail if this throws
     parse_cfg_file()
     logger.info("Configuration settings initialized")
+
+def reset():
+    """Function that resets program configuration.
+
+    Specifically, rereads the config file and clears the event queue.
+    """
+    logger.info("Resetting program settings")
+    parse_cfg_file()
+    eq.reset()
+    logger.info("Program settings reset.")
+
 
 _init() # do initialization and setup on first import

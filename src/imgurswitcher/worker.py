@@ -27,11 +27,4 @@ class Worker(Thread):
 
     def run(self):
         while True:
-            if not eq.is_blocked():
-                fcn = eq.event_queue.get()
-                logger.debug("Executing callback: %s", fcn[1].__name__)
-                fcn[1]()  # the event queue contains tuples; the callback is the second item
-                eq.event_queue.task_done()
-                logger.debug("Done executing callback: %s", fcn[1].__name__)
-            else:
-                logger.debug("Event queue is blocked, cannot execute callbacks")
+            eq.get_and_exec()
