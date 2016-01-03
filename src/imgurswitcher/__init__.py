@@ -20,9 +20,6 @@ import logging
 import os
 import atexit
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(filename=LOG_FILE_NAME, filemode='w')
-logger.setLevel(logging.INFO)
 
 ###########################################################################
 # Define this utility function for submodules to point at the right place
@@ -32,14 +29,17 @@ logger.setLevel(logging.INFO)
 _ROOT = os.path.abspath(os.path.dirname(__file__))
 _pkg_dir, _last_dir = os.path.split(_ROOT)
 if os.path.isfile(_pkg_dir):
-    logger.debug("Fixing _ROOT path due to py2exe bug...")
     _ROOT = os.path.split(_pkg_dir)[0]
 
-logger.debug("_ROOT is %s", _ROOT)
 def get_data(path):
     return os.path.join(_ROOT, 'data', path)
 
 ############################################################################
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(filename=get_data(LOG_FILE_NAME), filemode='w')
+logger.setLevel(logging.INFO)
+logger.debug("_ROOT is %s", _ROOT)
 
 # This order matters
 from . import event_queue
