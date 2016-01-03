@@ -293,5 +293,5 @@ class ImgurCallbacks:
         # Make sure that the user REALLY wants to quit
         result = dialogs.confirm_dialog_box(message="Are you sure you want to stop ImgurSwitcher?")
         if result:
-            cfg.write_config_to_file()
+            # cfg.write_to_file is automatically called on exit
             cfg.exit_program()

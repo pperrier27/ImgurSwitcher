@@ -18,6 +18,7 @@ LOG_FILE_NAME = "imgur_switcher_log.txt"
 
 import logging
 import os
+import atexit
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(filename=LOG_FILE_NAME, filemode='w')
@@ -42,18 +43,21 @@ def get_data(path):
 
 # This order matters
 from . import event_queue
-from . import config # also ensures that the initialization is run
+from . import config as cfg # also ensures that the initialization is run
 
 # Initialize what needs initializing, specifically in this order
 event_queue.init()
-config.set_platform_config()
+cfg.set_platform_config()
+
+# Make sure that on exit we call the exit function
+atexit.register(cfg.write_config_to_file)
 
 # Make available common parts from the package level
 # Worker depends on the event queue being initialized
 from .worker import Worker
 
 # Set the main function to use based on the platform
-main = config.Main
+main = cfg.Main
 
 
 __all__ = [] # don't want to support using "from imgurswitcher import *""
